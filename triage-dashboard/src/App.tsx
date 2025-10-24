@@ -7,7 +7,7 @@ import { loadFull } from "tsparticles";
 import CategoryChart from "./components/CategoryChart";
 import PriorityChart from "./components/PriorityChart";
 import TrendChart from "./components/TrendChart";
-import HeatMapChart from "./components/ConfidenceHeatmap"; // updated import
+import HeatMapChart from "./components/ConfidenceHeatmap";
 import CounterCards from "./components/CounterCard";
 import RecordTable from "./components/RecordTable";
 
@@ -22,7 +22,8 @@ const App: React.FC = () => {
 
   // Load enriched data
   useEffect(() => {
-    fetch("/TestData.enriched.jsonl")
+    const jsonPath = `${process.env.PUBLIC_URL}/TestData.enriched.jsonl`; // ✅ fixed path for GH Pages
+    fetch(jsonPath)
       .then((r) => r.text())
       .then((t) =>
         t
@@ -79,7 +80,10 @@ const App: React.FC = () => {
           fullScreen: { enable: false },
           background: { color: { value: "transparent" } },
           fpsLimit: 60,
-          interactivity: { events: { onHover: { enable: true, mode: "repulse" } }, modes: { repulse: { distance: 120, duration: 0.4 } } },
+          interactivity: {
+            events: { onHover: { enable: true, mode: "repulse" } },
+            modes: { repulse: { distance: 120, duration: 0.4 } },
+          },
           particles: {
             color: { value: ["#ffffff", "#ff99cc", "#00ffff"] },
             links: { color: "#fff", distance: 140, enable: true, opacity: 0.2, width: 1 },
@@ -94,7 +98,12 @@ const App: React.FC = () => {
       />
 
       {/* Header */}
-      <motion.header className="text-center py-8" initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+      <motion.header
+        className="text-center py-8"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+      >
         <h1 className="text-4xl md:text-5xl font-extrabold drop-shadow-lg">Triage Dashboard</h1>
         <p className="text-purple-200 mt-2">AI-powered insights for your test suite</p>
       </motion.header>
