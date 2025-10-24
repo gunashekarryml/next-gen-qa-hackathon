@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",                  // modern JS output
+    "module": "NodeNext",                 // required when using NodeNext resolution
+    "moduleResolution": "NodeNext",       // tells TS to resolve ES modules like Node
+    "jsx": "react-jsx",                   // for React 18
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src"]
+}

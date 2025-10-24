@@ -1,0 +1,31 @@
+{
+  "name": "playwright-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build1": "tsc",
+    "build": "npx tsc --build",
+    "validate:data": "npx playwright test tests/triage-data-validation.spec.ts --reporter=line",
+    "enrich": "npm run build && node dist/triage/index.js && npm run validate:data && npm run copy-to-dashboard",
+    "copy-to-dashboard": "cp ./test-data/TestData.enriched.jsonl ../triage-dashboard/public/TestData.enriched.jsonl",
+    "triage": "node dist/src/triage/index.js",
+    "full:demo": "npm run build && npm run triage",
+    "test": "npx playwright test --reporter=line,allure-playwright",
+    "allure": "npm run allure:generate && npm run allure:open",
+    "allure:generate": "allure generate allure-results --clean -o allure-report",
+    "allure:open": "allure open allure-report",
+    "ci": "npm run build && npm run triage && npm run test && npm run allure:generate"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.0",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.36.0",
+    "@types/fs-extra": "^11.0.4",
+    "allure-playwright": "^2.0.0-beta.25",
+    "typescript": "^5.9.3"
+  }
+}

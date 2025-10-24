@@ -1,0 +1,5 @@
+Triage summary: {
+  total: 2,
+  byCategory: { 'Assertion Failure': 1, Timeout: 1 },
+  byPriority: { P2: 1, P3: 1 }
+}

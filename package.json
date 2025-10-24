@@ -1,0 +1,27 @@
+{
+    "name": "automation-summit-solution",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "setup": "cd playwright-tests && npm install && npx playwright install && cd ../triage-dashboard && npm install",
+        "build": "cd playwright-tests && npm run build",
+        "triage": "cd playwright-tests && npm run triage",
+        "enrich": "cd playwright-tests && npm run enrich",
+        "start": "cd triage-dashboard && npm start",
+        "allure": "cd playwright-tests && npm run allure:generate && npx allure open allure-report",
+        "test": "cd playwright-tests && npx playwright test --reporter=line,allure-playwright",
+        "report": "cd playwright-tests && npm run allure:generate && npx allure open allure-report",
+        "dashboard": "lsof -ti:3000 | xargs -r kill -9 && cd triage-dashboard && npm start",
+        "start:reports": "concurrently --kill-others-on-fail \"npm run report\" \"npm run dashboard\"",
+        "full:demo": "npm run enrich && npm run triage && (npm run test || true) && npm run start:reports",
+        "full:demo-11": "npm run enrich && npm run start",
+        "full:demo-12": "npm run enrich && npm run allure && npm run start"
+    },
+    "workspaces": [
+        "playwright-tests",
+        "triage-dashboard"
+    ],
+    "devDependencies": {
+        "concurrently": "^9.2.1"
+    }
+}
