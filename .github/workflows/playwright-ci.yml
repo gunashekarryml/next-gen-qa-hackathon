@@ -1,68 +1,83 @@
-name: Playwright CI + Triage + Dashboard
+name: Playwright CI + Traige + Dashboard
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  triage-and-test:
+  setup:
+    name: Setup Node.js and Dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
+          cache: "npm"
 
-      - name: Install Playwright project deps
-        run: |
-          cd playwright-tests
-          npm ci
-          npx playwright install --with-deps
+      - name: Install Root Dependencies
+        run: npm install
 
-      - name: Run triage enrichment
-        run: |
-          cd playwright-tests
-          npm run build
-          npm run triage
-      - name: Run Playwright tests (Allure)
-        run: |
-          cd playwright-tests
-          npm run test
+      - name: Install Playwright Browsers
+        run: npx playwright install
+
+  enrich-triage-test:
+    name: Enrich, Triage, Validate, Generate Reports
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Enrich JSONL Test Data
+        run: npm run enrich
+
+      - name: Run Triage & Playwright Tests
+        run: npm run ci
 
       - name: Generate Allure Report
-        run: |
-          cd playwright-tests
-          npm run allure:generate
+        run: npm run allure
 
-      - name: Upload Allure Report artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Allure Report Artifact
+        uses: actions/upload-artifact@v3
         with:
           name: allure-report
           path: playwright-tests/allure-report
 
-  dashboard-build:
+  deploy-dashboard:
+    name: Build and Deploy Triage Dashboard
     runs-on: ubuntu-latest
-    needs: triage-and-test
+    needs: enrich-triage-test
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Dashboard deps
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install triage-dashboard dependencies
         run: |
           cd triage-dashboard
-          npm ci
-      - name: Copy enriched data into dashboard public folder
-        run: |
-          cp playwright-tests/test-data/TestData.enriched.jsonl triage-dashboard/public/TestData.enriched.jsonl || true
-      - name: Build dashboard
+          npm install
+
+      - name: Copy Enriched JSON to Dashboard
+        run: cp ./playwright-tests/test-data/TestData.enriched.jsonl ./triage-dashboard/public/TestData.enriched.jsonl
+
+      - name: Build React Dashboard
         run: |
           cd triage-dashboard
           npm run build
-      - name: Upload Dashboard
-        uses: actions/upload-artifact@v4
+
+      - name: Deploy Dashboard to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v5
         with:
-          name: triage-dashboard
-          path: triage-dashboard/build
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: triage-dashboard/build
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
