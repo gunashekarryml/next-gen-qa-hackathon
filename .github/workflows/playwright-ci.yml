@@ -76,10 +76,17 @@ jobs:
         working-directory: triage-dashboard
         run: npm ci
 
+      # ✅ Ensure PUBLIC_URL path works for GH Pages
       - name: Copy Enriched JSON to Dashboard
         run: |
           mkdir -p triage-dashboard/public
-          cp playwright-tests/test-data/TestData.enriched.jsonl triage-dashboard/public/  
+          cp playwright-tests/test-data/TestData.enriched.jsonl triage-dashboard/public/TestData.enriched.jsonl
+
+      # ✅ Ensure React knows homepage for GitHub Pages
+      - name: Set homepage in package.json
+        run: |
+          jq '.homepage="/"' triage-dashboard/package.json > triage-dashboard/package.tmp.json
+          mv triage-dashboard/package.tmp.json triage-dashboard/package.json
 
       - name: Build Dashboard
         working-directory: triage-dashboard
@@ -94,4 +101,3 @@ jobs:
           force_orphan: true
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
-      
