@@ -2,6 +2,7 @@
   "name": "triage-dashboard",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://gunashekarryml.github.io/team2-qa-hackathon",
   "scripts": {
     "dev": "vite",
     "start": "react-scripts start",
