@@ -7,7 +7,7 @@ import { loadFull } from "tsparticles";
 import CategoryChart from "./components/CategoryChart";
 import PriorityChart from "./components/PriorityChart";
 import TrendChart from "./components/TrendChart";
-import HeatMapChart from "./components/ConfidenceHeatmap";
+import HeatMapChart from "./components/ConfidenceHeatmap"; // updated import
 import CounterCards from "./components/CounterCard";
 import RecordTable from "./components/RecordTable";
 
@@ -20,10 +20,9 @@ const App: React.FC = () => {
     await loadFull(engine);
   }, []);
 
-  // Load enriched data
+  // Load enriched data from public folder
   useEffect(() => {
-    const jsonPath = `${process.env.PUBLIC_URL}/TestData.enriched.jsonl`; // ✅ fixed path for GH Pages
-    fetch(jsonPath)
+    fetch(process.env.PUBLIC_URL + "/TestData.enriched.jsonl")
       .then((r) => r.text())
       .then((t) =>
         t
@@ -82,7 +81,7 @@ const App: React.FC = () => {
           fpsLimit: 60,
           interactivity: {
             events: { onHover: { enable: true, mode: "repulse" } },
-            modes: { repulse: { distance: 120, duration: 0.4 } },
+            modes: { repulse: { distance: 120, duration: 0.4 } }
           },
           particles: {
             color: { value: ["#ffffff", "#ff99cc", "#00ffff"] },
