@@ -7,11 +7,19 @@ import { loadFull } from "tsparticles";
 import CategoryChart from "./components/CategoryChart";
 import PriorityChart from "./components/PriorityChart";
 import TrendChart from "./components/TrendChart";
-import HeatMapChart from "./components/ConfidenceHeatmap"; // updated import
+import CICDTrendChart from "./components/CICDTrendChart";
 import CounterCards from "./components/CounterCard";
 import RecordTable from "./components/RecordTable";
 
 import { Rec } from "./types";
+import logo from "./assets/logo.png"; // make sure this exists
+
+interface CICDRun {
+  run_number: number;
+  status: "success" | "failure";
+  duration: number;
+  timestamp: string;
+}
 
 const App: React.FC = () => {
   const [data, setData] = useState<Rec[]>([]);
@@ -20,7 +28,6 @@ const App: React.FC = () => {
     await loadFull(engine);
   }, []);
 
-  // Load enriched data from public folder
   useEffect(() => {
     fetch(process.env.PUBLIC_URL + "/TestData.enriched.jsonl")
       .then((r) => r.text())
@@ -44,13 +51,11 @@ const App: React.FC = () => {
       });
   }, []);
 
-  // Trend data dynamically based on timestamp
   const trendData = React.useMemo(() => {
     const counts: { [date: string]: number } = {};
     data.forEach((rec) => {
-      const ts = rec.timestamp;
-      if (!ts) return;
-      const d = new Date(ts);
+      if (!rec.timestamp) return;
+      const d = new Date(rec.timestamp);
       const key = `${d.getDate()}/${d.getMonth() + 1}`;
       counts[key] = (counts[key] || 0) + 1;
     });
@@ -63,14 +68,37 @@ const App: React.FC = () => {
       .map(([date, failures]) => ({ date, failures }));
   }, [data]);
 
-  const totalTests = data.length;
-  const highPriority = data.filter((d) => ["P1", "P2"].includes(d.triage_priority)).length;
-  const assertionFails = data.filter((d) => d.predicted_category === "Assertion Failure").length;
-  const timeouts = data.filter((d) => d.predicted_category === "Timeout").length;
+  const ciCdData: CICDRun[] = React.useMemo(() => {
+    return data.slice(-30).map((rec, idx) => {
+      const status = Math.random() > 0.2 ? "success" : "failure";
+      return {
+        run_number: idx + 1,
+        status: status as "success" | "failure",
+        duration: Math.floor(Math.random() * 10) + 1,
+        timestamp: rec.timestamp || new Date().toISOString(),
+      };
+    });
+  }, [data]);
 
   return (
-    <div className="relative min-h-screen font-sans text-white overflow-hidden bg-gray-900">
-      {/* Particle Background */}
+    <div className="relative min-h-screen font-sans text-white overflow-hidden bg-black">
+      {/* Logo top-left */}
+      <img
+        src={logo}
+        alt="Logo"
+        style={{
+          width: "180px",
+          height: "180px",
+          position: "absolute",
+          top: "-30px",    // distance from top in pixels
+          left: "40px",   // distance from left in pixels
+        }}
+        className="absolute top-4 left-4 object-contain z-20
+                   opacity-80 hover:opacity-100 transition-all duration-300
+                   transform hover:scale-110 shadow-lg cursor-pointer"
+      />
+
+      {/* Particles */}
       <Particles
         id="tsparticles"
         className="absolute inset-0 -z-10"
@@ -81,7 +109,7 @@ const App: React.FC = () => {
           fpsLimit: 60,
           interactivity: {
             events: { onHover: { enable: true, mode: "repulse" } },
-            modes: { repulse: { distance: 120, duration: 0.4 } }
+            modes: { repulse: { distance: 120, duration: 0.4 } },
           },
           particles: {
             color: { value: ["#ffffff", "#ff99cc", "#00ffff"] },
@@ -117,7 +145,7 @@ const App: React.FC = () => {
       </div>
       <div className="px-8 mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <CategoryChart data={data} />
-        <HeatMapChart data={data} />
+        <CICDTrendChart data={ciCdData} />
       </div>
 
       {/* Table */}
