@@ -30,7 +30,7 @@ jobs:
 
       - name: Install Playwright Browsers (Chromium only)
         working-directory: playwright-tests
-        run: npx playwright install chromium --with-deps
+        run: npx playwright install chromium
 
       - name: Enrich Test Failures & Validate
         run: npm run enrich
@@ -76,6 +76,11 @@ jobs:
         working-directory: triage-dashboard
         run: npm ci
 
+      - name: Copy Enriched JSON to Dashboard
+        run: |
+          mkdir -p triage-dashboard/public
+          cp playwright-tests/test-data/TestData.enriched.jsonl triage-dashboard/public/  
+
       - name: Build Dashboard
         working-directory: triage-dashboard
         run: npm run build
@@ -85,5 +90,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: triage-dashboard/build
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
+          force_orphan: true
+          enable_jekyll: false
