@@ -28,10 +28,15 @@ jobs:
       - name: Install all workspace dependencies
         run: npm ci
 
-      - name: Install Playwright Browsers
+      - name: Install Playwright Browsers (Chromium only)
         working-directory: playwright-tests
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium
 
+      - name: Setup Allure CLI
+        uses: alfresco/setup-allure-report@v1
+        with:
+          allure-version: 2.29.0  
+      
       - name: Enrich Test Failures & Validate
         run: npm run enrich
 
@@ -40,8 +45,7 @@ jobs:
         run: npm run test || true
 
       - name: Generate Allure Report
-        working-directory: playwright-tests
-        run: npm run allure:generate
+        run: npx allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
 
       - name: Upload Allure Report Artifact
         uses: actions/upload-artifact@v4
