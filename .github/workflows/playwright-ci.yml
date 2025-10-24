@@ -89,7 +89,7 @@ jobs:
       - name: Deploy GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GH_PAGES_TOKEN }}
           publish_dir: triage-dashboard/build
           publish_branch: gh-pages
           force_orphan: true
