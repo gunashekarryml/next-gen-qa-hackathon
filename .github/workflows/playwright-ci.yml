@@ -30,21 +30,21 @@ jobs:
 
       - name: Install Playwright Browsers (Chromium only)
         working-directory: playwright-tests
-        run: npx playwright install chromium
-      
+        run: npx playwright install chromium --with-deps
+
       - name: Enrich Test Failures & Validate
         run: npm run enrich
 
       - name: Run Playwright Tests + Generate Allure Results
         working-directory: playwright-tests
-        run: npm run test || true
+        run: npm run test || true  # don't break pipeline on test failures
 
       - name: Install Allure CLI
-        run: npm install -g allure-commandline --save-dev
-      
+        run: npm install -g allure-commandline
+
       - name: Generate Allure Report
         run: npx allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
-      
+
       - name: Upload Allure Report Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -81,7 +81,7 @@ jobs:
         run: npm run build
 
       - name: Deploy GitHub Pages
-        uses: peaceiris/actions-gh-pages@v5
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: triage-dashboard/build
