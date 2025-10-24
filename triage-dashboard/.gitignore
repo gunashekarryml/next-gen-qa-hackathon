@@ -1,0 +1,3 @@
+echo -e "node_modules/\ntriage-dashboard/node_modules/.cache/" >> .gitignore
+git add .gitignore
+git commit -m "Ignore node_modules and cache folders"
