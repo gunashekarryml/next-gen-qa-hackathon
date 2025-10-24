@@ -1,15 +1,26 @@
-import { useEffect, useState } from "react";
+// src/App.tsx
+import React, { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-// import Confetti from "react-confetti";
+import Particles from "react-tsparticles";
+import { loadFull } from "tsparticles";
+
 import CategoryChart from "./components/CategoryChart";
 import PriorityChart from "./components/PriorityChart";
+import TrendChart from "./components/TrendChart";
+import HeatMapChart from "./components/ConfidenceHeatmap"; // updated import
+import CounterCards from "./components/CounterCard";
 import RecordTable from "./components/RecordTable";
+
 import { Rec } from "./types";
 
-export default function App() {
+const App: React.FC = () => {
   const [data, setData] = useState<Rec[]>([]);
-  const [showConfetti, setShowConfetti] = useState(false);
 
+  const particlesInit = useCallback(async (engine: any) => {
+    await loadFull(engine);
+  }, []);
+
+  // Load enriched data
   useEffect(() => {
     fetch("/TestData.enriched.jsonl")
       .then((r) => r.text())
@@ -17,87 +28,100 @@ export default function App() {
         t
           .split("\n")
           .filter(Boolean)
-          .map((l) => JSON.parse(l))
+          .map((l) => {
+            try {
+              return JSON.parse(l) as Rec;
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean) as Rec[]
       )
-      .then((arr) => {
-        setData(arr);
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 4000);
-      })
-      .catch(() => setData([]));
+      .then((arr) => setData(arr))
+      .catch((err) => {
+        console.error("❌ Failed to load data", err);
+        setData([]);
+      });
   }, []);
 
-  // Quick stats
-  const total = data.length;
-  const highPriority = data.filter((d) => d.triage_priority === "P1" || d.triage_priority === "P2").length;
+  // Trend data dynamically based on timestamp
+  const trendData = React.useMemo(() => {
+    const counts: { [date: string]: number } = {};
+    data.forEach((rec) => {
+      const ts = rec.timestamp;
+      if (!ts) return;
+      const d = new Date(ts);
+      const key = `${d.getDate()}/${d.getMonth() + 1}`;
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort(([a], [b]) => {
+        const [da, ma] = a.split("/").map(Number);
+        const [db, mb] = b.split("/").map(Number);
+        return ma - mb || da - db;
+      })
+      .map(([date, failures]) => ({ date, failures }));
+  }, [data]);
+
+  const totalTests = data.length;
+  const highPriority = data.filter((d) => ["P1", "P2"].includes(d.triage_priority)).length;
   const assertionFails = data.filter((d) => d.predicted_category === "Assertion Failure").length;
   const timeouts = data.filter((d) => d.predicted_category === "Timeout").length;
 
   return (
-    <div className="relative min-h-screen font-sans text-gray-800 overflow-hidden bg-gradient-to-br from-indigo-700 via-purple-600 to-pink-500">
-      {/* {showConfetti && <Confetti recycle={false} numberOfPieces={350} />} */}
+    <div className="relative min-h-screen font-sans text-white overflow-hidden bg-gray-900">
+      {/* Particle Background */}
+      <Particles
+        id="tsparticles"
+        className="absolute inset-0 -z-10"
+        init={particlesInit}
+        options={{
+          fullScreen: { enable: false },
+          background: { color: { value: "transparent" } },
+          fpsLimit: 60,
+          interactivity: { events: { onHover: { enable: true, mode: "repulse" } }, modes: { repulse: { distance: 120, duration: 0.4 } } },
+          particles: {
+            color: { value: ["#ffffff", "#ff99cc", "#00ffff"] },
+            links: { color: "#fff", distance: 140, enable: true, opacity: 0.2, width: 1 },
+            move: { enable: true, speed: 1.4, outModes: "out" },
+            number: { value: 70, density: { enable: true, area: 800 } },
+            opacity: { value: 0.5 },
+            shape: { type: "circle" },
+            size: { value: { min: 1, max: 4 } },
+          },
+          detectRetina: true,
+        }}
+      />
 
       {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className="text-center py-8 text-white"
-      >
-        <h1 className="text-5xl font-extrabold drop-shadow-lg">
-          🧠 Failure Triage Dashboard
-        </h1>
-        <p className="text-lg text-purple-200 mt-2">
-          AI-powered insight into your QA suite health
-        </p>
+      <motion.header className="text-center py-8" initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+        <h1 className="text-4xl md:text-5xl font-extrabold drop-shadow-lg">Triage Dashboard</h1>
+        <p className="text-purple-200 mt-2">AI-powered insights for your test suite</p>
       </motion.header>
 
-      {/* Stats Section */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-8 mt-6">
-        {[
-          { label: "Total Tests", value: total },
-          { label: "High Priority", value: highPriority },
-          { label: "Assertion Failures", value: assertionFails },
-          { label: "Timeouts", value: timeouts },
-        ].map((stat, idx) => (
-          <motion.div
-            key={idx}
-            whileHover={{ scale: 1.05 }}
-            className="bg-white/90 rounded-2xl p-6 shadow-lg text-center backdrop-blur-sm"
-          >
-            <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
-            <p className="text-3xl font-bold text-indigo-700 mt-1">
-              {stat.value}
-            </p>
-          </motion.div>
-        ))}
-      </div>
+      {/* Counters */}
+      <CounterCards data={data} />
 
       {/* Charts */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.8 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 mt-10"
-      >
-        <CategoryChart data={data} />
+      <div className="px-8 mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <TrendChart data={trendData} />
         <PriorityChart data={data} />
-      </motion.div>
+      </div>
+      <div className="px-8 mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <CategoryChart data={data} />
+        <HeatMapChart data={data} />
+      </div>
 
-      {/* Record Table */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.8 }}
-        className="px-8 mt-10 mb-16"
-      >
+      {/* Table */}
+      <div className="px-8 mt-8 mb-12">
         <RecordTable data={data} />
-      </motion.div>
+      </div>
 
-      {/* Footer */}
       <footer className="text-center text-white/80 text-sm pb-6">
-        Built with 💜 using React, Tailwind, Recharts & Framer Motion
+        Built with 💜 React, Recharts, tsparticles & Tailwind
       </footer>
     </div>
   );
-}
+};
+
+export default App;

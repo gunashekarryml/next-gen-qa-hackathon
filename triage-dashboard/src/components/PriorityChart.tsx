@@ -1,4 +1,4 @@
-import { PieChart, Pie, Tooltip, Cell } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion } from "framer-motion";
 import { Rec } from "../types";
 
@@ -15,19 +15,41 @@ export default function PriorityChart({ data }: PriorityChartProps) {
     }, {})
   );
 
-  const COLORS = ["#EF4444", "#F59E0B", "#10B981", "#3B82F6"];
+  const COLORS: Record<string, string> = {
+    P1: "#EF4444",
+    P2: "#F59E0B",
+    P3: "#10B981",
+    P4: "#3B82F6",
+  };
+
+  const maxValue = Math.max(...aggr.map((p) => p.value), 1);
 
   return (
-    <motion.div className="bg-white rounded-3xl shadow-2xl p-6" whileHover={{ scale: 1.05 }}>
-      <h3 className="text-xl font-bold mb-4 text-gray-700">⚡ Priority Split</h3>
-      <PieChart width={380} height={260}>
-        <Pie dataKey="value" data={aggr} cx="50%" cy="50%" outerRadius={80} label>
-          {aggr.map((_, i) => (
-            <Cell key={i} fill={COLORS[i % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip />
-      </PieChart>
+    <motion.div className="bg-gray-800 rounded-3xl p-6 shadow-xl" whileHover={{ scale: 1.02 }}>
+      <h3 className="text-xl font-bold mb-4 text-white text-center">⚡ Priority Split</h3>
+      <ResponsiveContainer width="100%" height={300}>
+        <PieChart>
+          <Pie
+            data={aggr}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={100}
+            paddingAngle={5}
+            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+          >
+            {aggr.map((entry) => (
+              <Cell key={entry.name} fill={COLORS[entry.name] || "#8884d8"} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(value: number, name: string) => [`${value} tests`, `Priority ${name}`]}
+            contentStyle={{ backgroundColor: "rgba(0,0,0,0.8)", color: "#fff" }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
     </motion.div>
   );
 }
