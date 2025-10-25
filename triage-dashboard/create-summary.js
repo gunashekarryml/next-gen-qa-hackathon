@@ -1,119 +1,90 @@
 const fs = require('fs');
 const path = require('path');
 const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
 const { WebClient } = require('@slack/web-api');
 
-const argv = yargs(process.argv.slice(2)).argv;
+const argv = yargs(hideBin(process.argv)).argv;
 const SLACK_TOKEN = process.env.SLACK_TOKEN;
 const CHANNEL_ID = process.env.SLACK_CHANNEL;
-const repo = process.env.GITHUB_REPOSITORY;
-const runId = process.env.GITHUB_RUN_ID;
 
-// Dynamic Allure report folder
-const allureReportDir = argv.allureDir 
-  ? path.resolve(argv.allureDir) 
-  : path.resolve(__dirname, '../playwright-tests/allure-report');
-
-const summaryFile = path.join(allureReportDir, 'summary.json');
+const allureReportDir = argv.allureDir || 'playwright-tests/allure-report';
+const summaryFile = path.join(allureReportDir, 'widgets', 'summary.json'); // updated path
 
 if (!fs.existsSync(summaryFile)) {
-  console.error('Allure summary.json missing at', allureReportDir);
+  console.error(`Allure summary.json missing at ${summaryFile}`);
   process.exit(1);
 }
 
-// Read Allure summary
 const summaryData = JSON.parse(fs.readFileSync(summaryFile, 'utf-8'));
-const { total, passed, failed, broken, skipped } = summaryData.statistic;
+const totalTests = summaryData.statistic.total;
+const passedTests = summaryData.statistic.passed;
+const failedTests = summaryData.statistic.failed;
+const brokenTests = summaryData.statistic.broken;
+const skippedTests = summaryData.statistic.skipped;
 const startTime = new Date(summaryData.time.start);
 const endTime = new Date(summaryData.time.stop);
-const duration = formatTimestampToTime(summaryData.time.duration);
+const duration = Math.floor(summaryData.time.duration / 1000);
 
-// Format dates
+function formatTimestampToHHMMSS(seconds) {
+  const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+  const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+  const s = String(seconds % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+
 const startTimeParsed = startTime.toLocaleString("en-US", { hour12: true });
 const stopTimeParsed = endTime.toLocaleString("en-US", { hour12: true });
+const durationFormatted = formatTimestampToHHMMSS(duration);
 
-// Dashboard & Allure URLs
-const dashboardURL = `https://<your-org>.github.io/triage-dashboard/`;
-const allureURL = `https://<your-org>.github.io/time-automation/`;
+const workflowUrl = `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
-// Email body
 const emailBody = `
 Hello,
 
 The automation test run for Time is complete. Here's the summary:
-- Total Tests: ${total}
-- ✅ Passed: ${passed}
-- ❌ Failed: ${failed}
-- 💔 Broken: ${broken}
-- ⚠️ Skipped: ${skipped}
+- Total Tests: ${totalTests}
+- ✅ Passed: ${passedTests}
+- ❌ Failed: ${failedTests}
+- 💔 Broken: ${brokenTests}
+- ⚠️ Skipped: ${skippedTests}
 
 - Start Time: ${startTimeParsed}
 - Stop Time: ${stopTimeParsed}
-- Duration: ${duration}
+- Duration: ${durationFormatted}
 
-Full execution report (Allure) is available at: ${allureURL}
-Triage Dashboard: ${dashboardURL}
+Full execution report of this run is available at:
+https://gunashekarryml.github.io/time-automation/
 
-Workflow link: https://github.com/${repo}/actions/runs/${runId}
+Debug this run using the workflow link:
+${workflowUrl}
 
-Best regards,  
+Best regards,
 Automation Team
 `;
 
+// Write email body to file
 fs.writeFileSync('email-body.txt', emailBody);
-console.log('Email body created successfully.');
 
-// Slack visual summary
+// Export to GitHub Actions env
+console.log(`email_body<<EOF
+${emailBody}
+EOF`);
+
+// -------------------- Slack --------------------
 if (SLACK_TOKEN && CHANNEL_ID) {
   const slackClient = new WebClient(SLACK_TOKEN);
-
-  const totalBlocks = 20;
-  const passedBlocks = Math.round((passed / total) * totalBlocks);
-  const failedBlocks = Math.round((failed / total) * totalBlocks);
-  const brokenBlocks = Math.round((broken / total) * totalBlocks);
-  const skippedBlocks = totalBlocks - passedBlocks - failedBlocks - brokenBlocks;
-  const bar = '🟩'.repeat(passedBlocks) + '🟥'.repeat(failedBlocks) + '🟧'.repeat(brokenBlocks) + '⬜'.repeat(skippedBlocks);
-
-  const slackMessage = {
-    channel: CHANNEL_ID,
-    text: `Automation Run Completed`,
-    blocks: [
-      { type: "section", text: { type: "mrkdwn", text: `*Automation Test Summary*` } },
-      {
-        type: "section",
-        fields: [
-          { type: "mrkdwn", text: `*Total Tests:*\n${total}` },
-          { type: "mrkdwn", text: `*✅ Passed:*\n${passed}` },
-          { type: "mrkdwn", text: `*❌ Failed:*\n${failed}` },
-          { type: "mrkdwn", text: `*💔 Broken:*\n${broken}` },
-          { type: "mrkdwn", text: `*⚠️ Skipped:*\n${skipped}` },
-          { type: "mrkdwn", text: `*Duration:*\n${duration}` }
-        ]
-      },
-      { type: "section", text: { type: "mrkdwn", text: `*Visual Summary:*\n${bar}` } },
-      {
-        type: "actions",
-        elements: [
-          { type: "button", text: { type: "plain_text", text: "Allure Report" }, url: allureURL },
-          { type: "button", text: { type: "plain_text", text: "Dashboard" }, url: dashboardURL }
-        ]
-      },
-      { type: "context", elements: [{ type: "mrkdwn", text: `Workflow link: https://github.com/${repo}/actions/runs/${runId}` }] }
-    ]
-  };
-
-  slackClient.chat.postMessage(slackMessage)
-    .then(() => console.log('Slack message sent successfully!'))
-    .catch(err => console.error('Error sending Slack message:', err));
-} else {
-  console.warn('Slack token or channel missing. Skipping Slack notification.');
+  (async () => {
+    try {
+      await slackClient.chat.postMessage({
+        channel: CHANNEL_ID,
+        text: emailBody
+      });
+      console.log('Slack message sent successfully.');
+    } catch (err) {
+      console.error('Error sending Slack message:', err);
+    }
+  })();
 }
 
-// Helper function
-function formatTimestampToTime(timestamp) {
-  const totalSeconds = Math.floor(timestamp / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return [hours, minutes, seconds].map(n => String(n).padStart(2, '0')).join(':');
-}
+console.log('Email body created successfully.');
