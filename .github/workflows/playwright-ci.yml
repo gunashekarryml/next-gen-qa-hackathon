@@ -14,6 +14,8 @@ jobs:
   build-test-enrich:
     name: Enrich + Playwright Test + Allure
     runs-on: ubuntu-latest
+    outputs:
+      ALLURE_REPORT_DIR: ${{ steps.set-allure-path.outputs.allure-path }}
 
     steps:
       - name: Checkout
@@ -37,19 +39,25 @@ jobs:
 
       - name: Run Playwright Tests + Generate Allure Results
         working-directory: playwright-tests
-        run: npm run test || true  # don't break pipeline on test failures
+        run: npm run test || true
 
       - name: Install Allure CLI
         run: npm install -g allure-commandline
 
       - name: Generate Allure Report
+        id: generate-allure
         run: npx allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
 
       - name: Upload Allure Report Artifact
+        id: upload-allure
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: playwright-tests/allure-report
+
+      - name: Set Allure report path output
+        id: set-allure-path
+        run: echo "allure-path=playwright-tests/allure-report" >> $GITHUB_OUTPUT
 
       - name: Upload Enriched JSON Artifact
         uses: actions/upload-artifact@v4
@@ -76,7 +84,6 @@ jobs:
         working-directory: triage-dashboard
         run: npm ci
 
-      # ✅ COPY JSON BEFORE BUILD
       - name: Copy Enriched JSON to Dashboard Public Folder
         run: |
           mkdir -p triage-dashboard/public
@@ -95,3 +102,32 @@ jobs:
           force_orphan: true
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
+
+      # ------------------- Notifications -------------------
+      - name: Install Slack + Email dependencies
+        run: npm install @slack/web-api yargs
+
+      - name: Create Slack & Email Summary
+        if: always()
+        run: node triage-dashboard/create-summary.js --allureDir="${{ needs.build-test-enrich.outputs.ALLURE_REPORT_DIR }}"
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEPIENTS: ${{ secrets.EMAIL_RECEPIENTS }}
+
+      - name: Send Email Notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Web Automation & Dashboard Deployment - $(date '+%d-%b-%Y')"
+          to: ${{ secrets.EMAIL_RECEPIENTS }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          body: ${{ env.email_body }}
