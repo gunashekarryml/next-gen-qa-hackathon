@@ -53,6 +53,7 @@ jobs:
         run: npx allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
 
       - name: Upload Allure Report Artifact
+        id: upload-allure
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
@@ -103,8 +104,8 @@ jobs:
           github_token: ${{ secrets.GH_PAGES_TOKEN }}
           publish_dir: triage-dashboard/build
           publish_branch: gh-pages
-          destination_dir: triage-dashboard
-          force_orphan: true
+          destination_dir: dashboard       # ✅ Change made: deploy dashboard to 'dashboard' subfolder
+          force_orphan: false             # ✅ Change made: preserve other files in gh-pages branch
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
@@ -115,8 +116,8 @@ jobs:
           github_token: ${{ secrets.GH_PAGES_TOKEN }}
           publish_dir: playwright-tests/allure-report
           publish_branch: gh-pages
-          destination_dir: allure-report
-          force_orphan: true
+          destination_dir: allure          # ✅ Change made: deploy allure to 'allure' subfolder
+          force_orphan: false             # ✅ Change made: preserve other files in gh-pages branch
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
@@ -128,8 +129,8 @@ jobs:
         if: always()
         run: node triage-dashboard/create-summary.js \
           --allureDir="${{ needs.build-test-enrich.outputs.ALLURE_REPORT_DIR }}" \
-          --dashboardUrl="https://gunashekarryml.github.io/team2-qa-hackathon/triage-dashboard/" \
-          --allureUrl="https://gunashekarryml.github.io/team2-qa-hackathon/allure-report/"
+          --dashboardUrl="https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/" \
+          --allureUrl="https://gunashekarryml.github.io/team2-qa-hackathon/allure/"
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
