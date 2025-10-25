@@ -1,4 +1,4 @@
-name: CI | Enrich + Playwright + Triage Dashboard
+name: CI | Enrich + Playwright + Triage Dashboard + Allure
 
 on:
   push:
@@ -34,6 +34,9 @@ jobs:
         working-directory: playwright-tests
         run: npx playwright install chromium
 
+      - name: Clean old Allure results and reports
+        run: rm -rf playwright-tests/allure-results/* playwright-tests/allure-report
+
       - name: Enrich Test Failures & Validate
         run: npm run enrich
 
@@ -47,12 +50,9 @@ jobs:
 
       - name: Generate Allure Report
         id: generate-allure
-        run: |
-          rm -rf playwright-tests/allure-report
-          npx allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
+        run: npx allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
 
       - name: Upload Allure Report Artifact
-        id: upload-allure
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
@@ -68,8 +68,8 @@ jobs:
           name: enriched-testdata
           path: ${{ env.TEST_DATA_OUT }}
 
-  deploy-dashboard:
-    name: 🚀 Deploy Triage Dashboard + Notifications
+  deploy-dashboard-and-allure:
+    name: 🚀 Deploy Triage Dashboard + Allure + Notifications
     runs-on: ubuntu-latest
     needs: build-test-enrich
 
@@ -96,12 +96,26 @@ jobs:
         working-directory: triage-dashboard
         run: npm run build
 
-      - name: Deploy GitHub Pages
+      # ------------------ Deploy Dashboard ------------------
+      - name: Deploy GitHub Pages - Dashboard
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GH_PAGES_TOKEN }}
           publish_dir: triage-dashboard/build
           publish_branch: gh-pages
+          destination_dir: triage-dashboard
+          force_orphan: true
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
+
+      # ------------------ Deploy Allure ------------------
+      - name: Deploy GitHub Pages - Allure
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_PAGES_TOKEN }}
+          publish_dir: playwright-tests/allure-report
+          publish_branch: gh-pages
+          destination_dir: allure-report
           force_orphan: true
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
@@ -112,7 +126,10 @@ jobs:
 
       - name: Create Slack & Email Summary
         if: always()
-        run: node triage-dashboard/create-summary.js --allureDir="${{ needs.build-test-enrich.outputs.ALLURE_REPORT_DIR }}"
+        run: node triage-dashboard/create-summary.js \
+          --allureDir="${{ needs.build-test-enrich.outputs.ALLURE_REPORT_DIR }}" \
+          --dashboardUrl="https://gunashekarryml.github.io/team2-qa-hackathon/triage-dashboard/" \
+          --allureUrl="https://gunashekarryml.github.io/team2-qa-hackathon/allure-report/"
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}

@@ -6,6 +6,8 @@ const { hideBin } = require('yargs/helpers');
 
 const argv = yargs(hideBin(process.argv)).argv;
 const allureDir = argv.allureDir || './playwright-tests/allure-report';
+const dashboardUrl = argv.dashboardUrl;
+const allureUrl = argv.allureUrl;
 
 const summaryFile = path.join(allureDir, 'widgets', 'summary.json');
 
@@ -34,11 +36,10 @@ function formatDuration(seconds) {
 
 const duration = formatDuration(durationSeconds);
 
-// Workflow URL & Dashboard URL
+// Workflow URL
 const repo = process.env.GITHUB_REPOSITORY;
 const runId = process.env.GITHUB_RUN_ID;
 const workflowUrl = `https://github.com/${repo}/actions/runs/${runId}`;
-const reportUrl = "https://gunashekarryml.github.io/time-automation/triage-dashboard/";
 
 const EMAIL_BODY = `
 Hello,
@@ -54,8 +55,11 @@ The automation test run for Time is complete. Here's the summary:
 - Stop Time: ${stopTime.toLocaleString()}
 - Duration: ${duration}
 
-Full execution report of this run is available at:
-${reportUrl}
+Full execution report (Dashboard) is available at:
+${dashboardUrl}
+
+Allure detailed report is available at:
+${allureUrl}
 
 Debug this run using the workflow link:
 ${workflowUrl}
