@@ -1,0 +1,1 @@
+[{"uid":"d311b0b60ab4d9b","name":"sample passing test","time":{"start":1760867032177,"stop":1760867034584,"duration":2407},"status":"passed","severity":"normal"},{"uid":"be9dd103b6e783f6","name":"sample intentional failure","time":{"start":1760867034586,"stop":1760867034701,"duration":115},"status":"failed","severity":"normal"}]
