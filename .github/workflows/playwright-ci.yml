@@ -47,7 +47,9 @@ jobs:
 
       - name: Generate Allure Report
         id: generate-allure
-        run: npx allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
+        run: |
+          rm -rf playwright-tests/allure-report
+          npx allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
 
       - name: Upload Allure Report Artifact
         id: upload-allure
@@ -122,8 +124,7 @@ jobs:
 
       - name: Set Email Subject with Date
         id: set-email-subject
-        run: |
-          echo "email_subject=Web Automation & Dashboard Deployment - $(date '+%d-%b-%Y')" >> $GITHUB_ENV
+        run: echo "email_subject=Web Automation & Dashboard Deployment - $(date '+%d-%b-%Y')" >> $GITHUB_ENV
 
       - name: Send Email Notification
         if: always()

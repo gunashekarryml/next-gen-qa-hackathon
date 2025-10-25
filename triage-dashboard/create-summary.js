@@ -14,7 +14,6 @@ if (!fs.existsSync(summaryFile)) {
     process.exit(1);
 }
 
-// Read summary
 const summaryData = JSON.parse(fs.readFileSync(summaryFile, 'utf-8'));
 const totalTests = summaryData.statistic.total;
 const passedTests = summaryData.statistic.passed;
@@ -35,12 +34,12 @@ function formatDuration(seconds) {
 
 const duration = formatDuration(durationSeconds);
 
-// Workflow URL
+// Workflow URL & Dashboard URL
 const repo = process.env.GITHUB_REPOSITORY;
 const runId = process.env.GITHUB_RUN_ID;
 const workflowUrl = `https://github.com/${repo}/actions/runs/${runId}`;
+const reportUrl = "https://gunashekarryml.github.io/time-automation/triage-dashboard/";
 
-// Build email/slack body
 const EMAIL_BODY = `
 Hello,
 
@@ -56,7 +55,7 @@ The automation test run for Time is complete. Here's the summary:
 - Duration: ${duration}
 
 Full execution report of this run is available at:
-https://gunashekarryml.github.io/time-automation/
+${reportUrl}
 
 Debug this run using the workflow link:
 ${workflowUrl}
