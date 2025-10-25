@@ -1,45 +1,47 @@
 const fs = require('fs');
 const path = require('path');
+const { WebClient } = require('@slack/web-api');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
-const { WebClient } = require('@slack/web-api');
 
 const argv = yargs(hideBin(process.argv)).argv;
-const SLACK_TOKEN = process.env.SLACK_TOKEN;
-const CHANNEL_ID = process.env.SLACK_CHANNEL;
+const allureDir = argv.allureDir || './playwright-tests/allure-report';
 
-const allureReportDir = argv.allureDir || 'playwright-tests/allure-report';
-const summaryFile = path.join(allureReportDir, 'widgets', 'summary.json'); // updated path
+const summaryFile = path.join(allureDir, 'widgets', 'summary.json');
 
 if (!fs.existsSync(summaryFile)) {
-  console.error(`Allure summary.json missing at ${summaryFile}`);
-  process.exit(1);
+    console.error(`Allure summary.json missing at ${summaryFile}`);
+    process.exit(1);
 }
 
+// Read summary
 const summaryData = JSON.parse(fs.readFileSync(summaryFile, 'utf-8'));
 const totalTests = summaryData.statistic.total;
 const passedTests = summaryData.statistic.passed;
 const failedTests = summaryData.statistic.failed;
 const brokenTests = summaryData.statistic.broken;
 const skippedTests = summaryData.statistic.skipped;
-const startTime = new Date(summaryData.time.start);
-const endTime = new Date(summaryData.time.stop);
-const duration = Math.floor(summaryData.time.duration / 1000);
 
-function formatTimestampToHHMMSS(seconds) {
-  const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-  const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-  const s = String(seconds % 60).padStart(2, '0');
-  return `${h}:${m}:${s}`;
+const startTime = new Date(summaryData.time.start);
+const stopTime = new Date(summaryData.time.stop);
+const durationSeconds = summaryData.time.duration;
+
+function formatDuration(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
 }
 
-const startTimeParsed = startTime.toLocaleString("en-US", { hour12: true });
-const stopTimeParsed = endTime.toLocaleString("en-US", { hour12: true });
-const durationFormatted = formatTimestampToHHMMSS(duration);
+const duration = formatDuration(durationSeconds);
 
-const workflowUrl = `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+// Workflow URL
+const repo = process.env.GITHUB_REPOSITORY;
+const runId = process.env.GITHUB_RUN_ID;
+const workflowUrl = `https://github.com/${repo}/actions/runs/${runId}`;
 
-const emailBody = `
+// Build email/slack body
+const EMAIL_BODY = `
 Hello,
 
 The automation test run for Time is complete. Here's the summary:
@@ -49,9 +51,9 @@ The automation test run for Time is complete. Here's the summary:
 - 💔 Broken: ${brokenTests}
 - ⚠️ Skipped: ${skippedTests}
 
-- Start Time: ${startTimeParsed}
-- Stop Time: ${stopTimeParsed}
-- Duration: ${durationFormatted}
+- Start Time: ${startTime.toLocaleString()}
+- Stop Time: ${stopTime.toLocaleString()}
+- Duration: ${duration}
 
 Full execution report of this run is available at:
 https://gunashekarryml.github.io/time-automation/
@@ -63,28 +65,28 @@ Best regards,
 Automation Team
 `;
 
-// Write email body to file
-fs.writeFileSync('email-body.txt', emailBody);
-
-// Export to GitHub Actions env
-console.log(`email_body<<EOF
-${emailBody}
-EOF`);
-
-// -------------------- Slack --------------------
-if (SLACK_TOKEN && CHANNEL_ID) {
-  const slackClient = new WebClient(SLACK_TOKEN);
-  (async () => {
-    try {
-      await slackClient.chat.postMessage({
-        channel: CHANNEL_ID,
-        text: emailBody
-      });
-      console.log('Slack message sent successfully.');
-    } catch (err) {
-      console.error('Error sending Slack message:', err);
-    }
-  })();
-}
-
+// Save to GitHub ENV for email
+fs.writeFileSync('email-body.txt', EMAIL_BODY);
+fs.appendFileSync(process.env.GITHUB_ENV, `email_body<<EOF\n${EMAIL_BODY}\nEOF\n`);
 console.log('Email body created successfully.');
+
+// Send Slack if configured
+const SLACK_TOKEN = process.env.SLACK_TOKEN;
+const SLACK_CHANNEL = process.env.SLACK_CHANNEL;
+
+if (SLACK_TOKEN && SLACK_CHANNEL) {
+    (async () => {
+        try {
+            const client = new WebClient(SLACK_TOKEN);
+            await client.chat.postMessage({
+                channel: SLACK_CHANNEL,
+                text: EMAIL_BODY
+            });
+            console.log('Slack message sent successfully.');
+        } catch (err) {
+            console.error('Error sending Slack message:', err);
+        }
+    })();
+} else {
+    console.log('Slack token or channel not provided; skipping Slack notification.');
+}
