@@ -1,53 +1,47 @@
 const fs = require('fs');
 const path = require('path');
+const { WebClient } = require('@slack/web-api');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
-const { WebClient } = require('@slack/web-api');
 
-const argv = yargs(hideBin(process.argv))
-  .option('allureDir', { type: 'string', demandOption: true })
-  .option('dashboardUrl', { type: 'string', demandOption: true })
-  .option('allureUrl', { type: 'string', demandOption: true })
-  .argv;
+const argv = yargs(hideBin(process.argv)).argv;
+const allureDir = argv.allureDir || './playwright-tests/allure-report';
+const dashboardUrl = argv.dashboardUrl;
+const allureUrl = argv.allureUrl;
 
-const SLACK_TOKEN = process.env.SLACK_TOKEN;
-const SLACK_CHANNEL = process.env.SLACK_CHANNEL;
-const EMAIL_USERNAME = process.env.EMAIL_USERNAME;
-const EMAIL_RECEPIENTS = process.env.EMAIL_RECEPIENTS;
-const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
-const GITHUB_RUN_ID = process.env.GITHUB_RUN_ID;
+const summaryFile = path.join(allureDir, 'widgets', 'summary.json');
 
-// --------- Read Allure summary ---------
-const summaryPath = path.join(argv.allureDir, 'widgets', 'summary.json');
-
-if (!fs.existsSync(summaryPath)) {
-  console.error(`Allure summary.json missing at ${summaryPath}`);
-  process.exit(1);
+if (!fs.existsSync(summaryFile)) {
+    console.error(`Allure summary.json missing at ${summaryFile}`);
+    process.exit(1);
 }
 
-const summaryData = JSON.parse(fs.readFileSync(summaryPath, 'utf-8'));
+const summaryData = JSON.parse(fs.readFileSync(summaryFile, 'utf-8'));
 const totalTests = summaryData.statistic.total;
 const passedTests = summaryData.statistic.passed;
 const failedTests = summaryData.statistic.failed;
 const brokenTests = summaryData.statistic.broken;
 const skippedTests = summaryData.statistic.skipped;
 
-const startTime = new Date(summaryData.time.start).toLocaleString();
-const stopTime = new Date(summaryData.time.stop).toLocaleString();
+const startTime = new Date(summaryData.time.start);
+const stopTime = new Date(summaryData.time.stop);
 const durationSeconds = summaryData.time.duration;
 
-function formatDuration(sec) {
-  const hours = Math.floor(sec / 3600);
-  const minutes = Math.floor((sec % 3600) / 60);
-  const seconds = sec % 60;
-  return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+function formatDuration(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
 }
 
 const duration = formatDuration(durationSeconds);
-const workflowUrl = `https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`;
 
-// --------- Compose email/slack body ---------
-const emailBody = `
+// Workflow URL
+const repo = process.env.GITHUB_REPOSITORY;
+const runId = process.env.GITHUB_RUN_ID;
+const workflowUrl = `https://github.com/${repo}/actions/runs/${runId}`;
+
+const EMAIL_BODY = `
 Hello,
 
 The automation test run for Time is complete. Here's the summary:
@@ -57,13 +51,15 @@ The automation test run for Time is complete. Here's the summary:
 - 💔 Broken: ${brokenTests}
 - ⚠️ Skipped: ${skippedTests}
 
-- Start Time: ${startTime}
-- Stop Time: ${stopTime}
+- Start Time: ${startTime.toLocaleString()}
+- Stop Time: ${stopTime.toLocaleString()}
 - Duration: ${duration}
 
-Full execution report:
-- Dashboard: ${argv.dashboardUrl}
-- Allure Report: ${argv.allureUrl}
+Full execution report (Dashboard) is available at:
+${dashboardUrl}
+
+Allure detailed report is available at:
+${allureUrl}
 
 Debug this run using the workflow link:
 ${workflowUrl}
@@ -72,21 +68,28 @@ Best regards,
 Automation Team
 `;
 
-// --------- Save to file & GitHub ENV ---------
-fs.writeFileSync('email-body.txt', emailBody);
+// Save to GitHub ENV for email
+fs.writeFileSync('email-body.txt', EMAIL_BODY);
+fs.appendFileSync(process.env.GITHUB_ENV, `email_body<<EOF\n${EMAIL_BODY}\nEOF\n`);
 console.log('Email body created successfully.');
 
-fs.appendFileSync(process.env.GITHUB_ENV, `email_body<<EOF\n${emailBody}\nEOF\n`);
+// Send Slack if configured
+const SLACK_TOKEN = process.env.SLACK_TOKEN;
+const SLACK_CHANNEL = process.env.SLACK_CHANNEL;
 
-// --------- Send Slack Notification ---------
 if (SLACK_TOKEN && SLACK_CHANNEL) {
-  const slackClient = new WebClient(SLACK_TOKEN);
-  slackClient.chat.postMessage({
-    channel: SLACK_CHANNEL,
-    text: emailBody,
-  }).then(() => {
-    console.log('Slack message sent successfully.');
-  }).catch(err => {
-    console.error('Slack message error:', err);
-  });
+    (async () => {
+        try {
+            const client = new WebClient(SLACK_TOKEN);
+            await client.chat.postMessage({
+                channel: SLACK_CHANNEL,
+                text: EMAIL_BODY
+            });
+            console.log('Slack message sent successfully.');
+        } catch (err) {
+            console.error('Error sending Slack message:', err);
+        }
+    })();
+} else {
+    console.log('Slack token or channel not provided; skipping Slack notification.');
 }
