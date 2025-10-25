@@ -1,4 +1,4 @@
-name: CI | Enrich + Playwright + Triage Dashboard + Allure
+name: CI | Enrich + Playwright + Triage Dashboard
 
 on:
   push:
@@ -27,15 +27,12 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install all workspace dependencies
+      - name: Install dependencies
         run: npm ci
 
       - name: Install Playwright Browsers (Chromium only)
         working-directory: playwright-tests
         run: npx playwright install chromium
-
-      - name: Clean old Allure results and reports
-        run: rm -rf playwright-tests/allure-results/* playwright-tests/allure-report
 
       - name: Enrich Test Failures & Validate
         run: npm run enrich
@@ -69,8 +66,8 @@ jobs:
           name: enriched-testdata
           path: ${{ env.TEST_DATA_OUT }}
 
-  deploy-dashboard-and-allure:
-    name: 🚀 Deploy Triage Dashboard + Allure + Notifications
+  deploy-dashboard:
+    name: 🚀 Deploy Dashboard + Allure + Notifications
     runs-on: ubuntu-latest
     needs: build-test-enrich
 
@@ -97,27 +94,28 @@ jobs:
         working-directory: triage-dashboard
         run: npm run build
 
-      # ------------------ Deploy Dashboard ------------------
-      - name: Deploy GitHub Pages - Dashboard
+      # ------------------ Deploy ------------------
+      # Dashboard deployment
+      - name: Deploy Dashboard to gh-pages/dashboard
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GH_PAGES_TOKEN }}
           publish_dir: triage-dashboard/build
           publish_branch: gh-pages
-          destination_dir: dashboard       # ✅ Change made: deploy dashboard to 'dashboard' subfolder
-          force_orphan: false             # ✅ Change made: preserve other files in gh-pages branch
+          destination_dir: dashboard    # <-- subfolder for dashboard
+          force_orphan: false           # <-- preserves other content
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
-      # ------------------ Deploy Allure ------------------
-      - name: Deploy GitHub Pages - Allure
+      # Allure deployment
+      - name: Deploy Allure Report to gh-pages/allure
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GH_PAGES_TOKEN }}
           publish_dir: playwright-tests/allure-report
           publish_branch: gh-pages
-          destination_dir: allure          # ✅ Change made: deploy allure to 'allure' subfolder
-          force_orphan: false             # ✅ Change made: preserve other files in gh-pages branch
+          destination_dir: allure      # <-- subfolder for allure
+          force_orphan: false
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
@@ -127,10 +125,11 @@ jobs:
 
       - name: Create Slack & Email Summary
         if: always()
-        run: node triage-dashboard/create-summary.js \
-          --allureDir="${{ needs.build-test-enrich.outputs.ALLURE_REPORT_DIR }}" \
-          --dashboardUrl="https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/" \
-          --allureUrl="https://gunashekarryml.github.io/team2-qa-hackathon/allure/"
+        run: >
+          node triage-dashboard/create-summary.js
+            --allureDir="${{ needs.build-test-enrich.outputs.ALLURE_REPORT_DIR }}"
+            --dashboardUrl="https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/"
+            --allureUrl="https://gunashekarryml.github.io/team2-qa-hackathon/allure/"
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
@@ -142,7 +141,8 @@ jobs:
 
       - name: Set Email Subject with Date
         id: set-email-subject
-        run: echo "email_subject=Web Automation & Dashboard Deployment - $(date '+%d-%b-%Y')" >> $GITHUB_ENV
+        run: |
+          echo "email_subject=Web Automation & Dashboard Deployment - $(date '+%d-%b-%Y')" >> $GITHUB_ENV
 
       - name: Send Email Notification
         if: always()
