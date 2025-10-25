@@ -10,6 +10,7 @@
         "ci:allure:generate": "cd playwright-tests && allure generate allure-results --clean -o allure-report",
         "ci:copy-to-dashboard": "cd playwright-tests && cp ./test-data/TestData.enriched.jsonl ../triage-dashboard/public/TestData.enriched.jsonl",
        
+        "start-server": "cd triage-dashboard/server && node index.js",
         "build": "cd playwright-tests && npm run build",
         "triage": "cd playwright-tests && npm run triage",
         "enrich": "cd playwright-tests && npm run enrich",
@@ -20,7 +21,7 @@
         "dashboard": "lsof -ti:3000 | xargs -r kill -9 && cd triage-dashboard && npm start",
         "start:reports": "concurrently --kill-others-on-fail \"npm run report\" \"npm run dashboard\"",
         "full:demo": "npm run enrich && npm run triage && (npm run test || true) && npm run start:reports",
-        "full:demo-11": "npm run enrich && npm run start",
+        "full:demo-11": "npm run enrich && concurrently \"npm run start-server\" \"npm run start\"",
         "full:demo-12": "npm run enrich && npm run allure && npm run start"
     },
     "workspaces": [

@@ -13,10 +13,19 @@ export interface Rec {
   correlation_id?: string;
   logs?: string[];
   timestamp?: string; // add this
+  status?: "PASS" | "FAIL" | "SKIPPED" | "ERROR";
 }
-
 
 export interface TrendData {
   date: string;
   failures: number;
 }
+
+// ✅ Root Cause Cluster Types
+export interface RootCauseCluster {
+  reason: string;
+  percentage: number;
+  recommended_fix: string;
+}
+
+export interface FailureRec extends Rec {}
