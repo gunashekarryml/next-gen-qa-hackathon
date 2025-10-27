@@ -1,158 +1,86 @@
-name: CI | Enrich + Playwright + Triage Dashboard
+name: Playwright Triage Dashboard
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
-env:
-  TEST_DATA_OUT: playwright-tests/test-data/TestData.enriched.jsonl
-
 jobs:
-  build-test-enrich:
-    name: Enrich + Playwright Test + Allure
+  test-and-report:
     runs-on: ubuntu-latest
-    outputs:
-      ALLURE_REPORT_DIR: ${{ steps.set-allure-path.outputs.allure-path }}
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node + NPM Cache
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 18
 
-      - name: Install Dependencies
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
 
-      - name: Install Playwright Browsers
-        working-directory: playwright-tests
-        run: npx playwright install chromium
+      - name: Run Playwright Tests
+        run: npx playwright test --reporter=line
 
-      - name: Enrich Test Failures & Validate Data
-        run: npm run enrich
-
-      - name: Run Playwright Tests + Generate Allure Results
-        working-directory: playwright-tests
-        run: npx playwright test || true
-
-      # ✅ Generate fresh Allure report
-      - name: Install Allure CLI
-        run: npm install -g allure-commandline
+      # CLEAN PAST REPORTS BEFORE GENERATING FRESH ONE
+      - name: Remove old Allure Reports
+        run: |
+          rm -rf allure-report
+          rm -rf allure-results/allure-report
 
       - name: Generate Allure Report
-        id: generate-allure
-        run: allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
+        run: |
+          npx allure generate allure-results --clean -o allure-report
+          cp -r allure-report ./public-allure
 
-      # ✅ Upload so deploy job can download
       - name: Upload Allure Report Artifact
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: playwright-tests/allure-report
+          path: public-allure
 
-      - name: Set Allure report path output
-        id: set-allure-path
-        run: echo "allure-path=playwright-tests/allure-report" >> $GITHUB_OUTPUT
-
-      - name: Upload Enriched Data
-        uses: actions/upload-artifact@v4
-        with:
-          name: enriched-testdata
-          path: ${{ env.TEST_DATA_OUT }}
-
-  deploy-dashboard:
-    name: 🚀 Deploy Dashboard + Allure + Notifications
-    runs-on: ubuntu-latest
-    needs: build-test-enrich
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # ✅ Bring latest artifacts from test job
-      - name: Download Enriched Data
-        uses: actions/download-artifact@v4
-        with:
-          name: enriched-testdata
-          path: playwright-tests/test-data/
-
-      - name: Download Latest Allure Report
-        uses: actions/download-artifact@v4
-        with:
-          name: allure-report
-          path: playwright-tests/allure-report
-
-      - name: Install Dashboard Dependencies
-        working-directory: triage-dashboard
-        run: npm ci
-
-      - name: Copy Enriched JSON to Dashboard Public Folder
+      # ✅ Deploy Dashboard + Allure as static site bundle
+      - name: Prepare Pages Bundle
         run: |
-          mkdir -p triage-dashboard/public
-          cp playwright-tests/test-data/TestData.enriched.jsonl triage-dashboard/public/
+          mkdir -p public/dashboard
+          cp -r dashboard/* public/dashboard/
+          mkdir -p public/allure
+          cp -r public-allure/* public/allure/
 
-      - name: Build Dashboard
-        working-directory: triage-dashboard
-        run: npm run build
-
-      # ✅ Deploy dashboard to GitHub Pages /dashboard
-      - name: Deploy Dashboard to gh-pages/dashboard
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GH_PAGES_TOKEN }}
-          publish_dir: triage-dashboard/build
-          publish_branch: gh-pages
-          destination_dir: dashboard
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
 
-      # ✅ Deploy updated Allure report to /allure
-      - name: Deploy Allure Report to gh-pages/allure
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GH_PAGES_TOKEN }}
-          publish_dir: playwright-tests/allure-report
-          publish_branch: gh-pages
-          destination_dir: allure
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
-
-      # ✅ Notifications
-      - name: Install Notification Dependencies
-        run: npm install @slack/web-api yargs
+      # ✅ Wait to ensure GitHub Pages has the latest summary.json uploaded
+      - name: Wait for Pages Sync
+        run: sleep 10
 
       - name: Create Slack & Email Summary
-        if: always()
-        run: node triage-dashboard/create-summary.js --allureDir=https://gunashekarryml.github.io/team2-qa-hackathon/allure/ --dashboardUrl=https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/ --allureUrl=https://gunashekarryml.github.io/team2-qa-hackathon/allure/
+        run: |
+          node triage-dashboard/create-summary.js \
+          --allureDir="public/allure" \
+          --dashboardUrl="https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/" \
+          --allureUrl="https://gunashekarryml.github.io/team2-qa-hackathon/allure/"
         env:
+          TEST_DATA_OUT: playwright-tests/test-data/TestData.enriched.jsonl
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
           EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_RECEPIENTS: ${{ secrets.EMAIL_RECEPIENTS }}
 
-      - name: Set Email Subject
-        id: set-email-subject
-        run: echo "subject=🧪 QA Test Report - $(date '+%d-%b-%Y')" >> $GITHUB_OUTPUT
-
       - name: Send Email Notification
-        if: always()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: ${{ steps.set-email-subject.outputs.subject }}
-          to: ${{ secrets.EMAIL_RECEPIENTS }}
+          subject: "✅ Dashboard & Allure Updated Successfully"
           from: ${{ secrets.EMAIL_USERNAME }}
-          body: "📊 Deployment Done. Check Dashboard + Allure Report!"
-
+          to: ${{ secrets.EMAIL_RECEPIENTS }}
+          body: 📊 Deployment Done. Check Dashboard + Allure Report!
