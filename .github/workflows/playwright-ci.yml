@@ -129,11 +129,7 @@ jobs:
 
       - name: Create Slack & Email Summary
         if: always()
-        run: >
-          node triage-dashboard/create-summary.js
-            --allureDir="https://gunashekarryml.github.io/team2-qa-hackathon/allure/"
-            --dashboardUrl="https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/"
-            --allureUrl="https://gunashekarryml.github.io/team2-qa-hackathon/allure/"
+        run: node triage-dashboard/create-summary.js --allureDir=https://gunashekarryml.github.io/team2-qa-hackathon/allure/ --dashboardUrl=https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/ --allureUrl=https://gunashekarryml.github.io/team2-qa-hackathon/allure/
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
@@ -145,7 +141,7 @@ jobs:
 
       - name: Set Email Subject
         id: set-email-subject
-        run: echo "email_subject=🧪 QA Test Report - $(date '+%d-%b-%Y')" >> $GITHUB_ENV
+        run: echo "subject=🧪 QA Test Report - $(date '+%d-%b-%Y')" >> $GITHUB_OUTPUT
 
       - name: Send Email Notification
         if: always()
@@ -155,7 +151,8 @@ jobs:
           server_port: 465
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: ${{ env.email_subject }}
+          subject: ${{ steps.set-email-subject.outputs.subject }}
           to: ${{ secrets.EMAIL_RECEPIENTS }}
           from: ${{ secrets.EMAIL_USERNAME }}
           body: "📊 Deployment Done. Check Dashboard + Allure Report!"
+
