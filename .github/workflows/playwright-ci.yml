@@ -123,37 +123,52 @@ jobs:
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
-      # ✅ Notifications
+            # ✅ Notifications
       - name: Install Notification Dependencies
         run: npm install @slack/web-api yargs
-
+    
       - name: Create Slack & Email Summary
         if: always()
-        run: node triage-dashboard/create-summary.js --allureDir=https://gunashekarryml.github.io/team2-qa-hackathon/allure/ --dashboardUrl=https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/ --allureUrl=https://gunashekarryml.github.io/team2-qa-hackathon/allure/
+        run: |
+              echo "Generating email summary..."
+              node triage-dashboard/create-summary.js \
+                --allureDir=playwright-tests/allure-report \
+                --dashboardUrl=https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/ \
+                --allureUrl=https://gunashekarryml.github.io/team2-qa-hackathon/allure/
         env:
-          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEPIENTS: ${{ secrets.EMAIL_RECEPIENTS }}
-
+              SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+              SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+              GITHUB_REPOSITORY: ${{ github.repository }}
+              GITHUB_RUN_ID: ${{ github.run_id }}
+              EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+              EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+              EMAIL_RECEPIENTS: ${{ secrets.EMAIL_RECEPIENTS }}
+    
+        # ✅ Export generated email body safely to GitHub ENV
+      - name: Export Email Body to ENV
+        if: always()
+        run: |
+              echo "email_body<<EOF" >> $GITHUB_ENV
+              cat email-body.txt >> $GITHUB_ENV
+              echo "EOF" >> $GITHUB_ENV
+    
       - name: Set Email Subject
         id: set-email-subject
-        run: echo "subject=🧪 QA Test Report - $(date '+%d-%b-%Y')" >> $GITHUB_OUTPUT
-
+        if: always()
+        run: |
+              echo "subject=🧪 QA Test Report - $(date '+%d-%b-%Y')" >> $GITHUB_OUTPUT
+    
       - name: Send Email Notification
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: ${{ steps.set-email-subject.outputs.subject }}
-          to: ${{ secrets.EMAIL_RECEPIENTS }}
-          from: ${{ secrets.EMAIL_USERNAME }}
-          body: "📊 Deployment Done. Check Dashboard + Allure Report!"
-
+              server_address: smtp.gmail.com
+              server_port: 465
+              username: ${{ secrets.EMAIL_USERNAME }}
+              password: ${{ secrets.EMAIL_PASSWORD }}
+              subject: ${{ steps.set-email-subject.outputs.subject }}
+              to: ${{ secrets.EMAIL_RECEPIENTS }}
+              from: ${{ secrets.EMAIL_USERNAME }}
+              body: ${{ env.email_body }}
+    
 
