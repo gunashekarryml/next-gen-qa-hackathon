@@ -27,30 +27,30 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci
 
-      - name: Install Playwright Browsers (Chromium only)
+      - name: Install Playwright Browsers
         working-directory: playwright-tests
         run: npx playwright install chromium
 
-      - name: Enrich Test Failures & Validate
+      - name: Enrich Test Failures & Validate Data
         run: npm run enrich
 
       - name: Run Playwright Tests + Generate Allure Results
         working-directory: playwright-tests
-        run: npm run test || true
+        run: npx playwright test || true
 
-      # ------------------ Allure ------------------
+      # ✅ Generate fresh Allure report
       - name: Install Allure CLI
         run: npm install -g allure-commandline
 
       - name: Generate Allure Report
         id: generate-allure
-        run: npx allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
+        run: allure generate playwright-tests/allure-results --clean -o playwright-tests/allure-report
 
+      # ✅ Upload so deploy job can download
       - name: Upload Allure Report Artifact
-        id: upload-allure
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
@@ -60,7 +60,7 @@ jobs:
         id: set-allure-path
         run: echo "allure-path=playwright-tests/allure-report" >> $GITHUB_OUTPUT
 
-      - name: Upload Enriched JSON Artifact
+      - name: Upload Enriched Data
         uses: actions/upload-artifact@v4
         with:
           name: enriched-testdata
@@ -75,11 +75,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ✅ Bring latest artifacts from test job
       - name: Download Enriched Data
         uses: actions/download-artifact@v4
         with:
           name: enriched-testdata
           path: playwright-tests/test-data/
+
+      - name: Download Latest Allure Report
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-report
+          path: playwright-tests/allure-report
 
       - name: Install Dashboard Dependencies
         working-directory: triage-dashboard
@@ -94,40 +101,37 @@ jobs:
         working-directory: triage-dashboard
         run: npm run build
 
-      # ------------------ Deploy ------------------
-      # Dashboard deployment
+      # ✅ Deploy dashboard to GitHub Pages /dashboard
       - name: Deploy Dashboard to gh-pages/dashboard
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GH_PAGES_TOKEN }}
           publish_dir: triage-dashboard/build
           publish_branch: gh-pages
-          destination_dir: dashboard    # <-- subfolder for dashboard
-          force_orphan: false           # <-- preserves other content
+          destination_dir: dashboard
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
-      # Allure deployment
+      # ✅ Deploy updated Allure report to /allure
       - name: Deploy Allure Report to gh-pages/allure
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GH_PAGES_TOKEN }}
           publish_dir: playwright-tests/allure-report
           publish_branch: gh-pages
-          destination_dir: allure      # <-- subfolder for allure
-          force_orphan: false
+          destination_dir: allure
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
-      # ------------------- Notifications -------------------
-      - name: Install Slack + Email dependencies
+      # ✅ Notifications
+      - name: Install Notification Dependencies
         run: npm install @slack/web-api yargs
 
       - name: Create Slack & Email Summary
         if: always()
         run: >
           node triage-dashboard/create-summary.js
-            --allureDir="${{ needs.build-test-enrich.outputs.ALLURE_REPORT_DIR }}"
+            --allureDir="https://gunashekarryml.github.io/team2-qa-hackathon/allure/"
             --dashboardUrl="https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/"
             --allureUrl="https://gunashekarryml.github.io/team2-qa-hackathon/allure/"
         env:
@@ -139,10 +143,9 @@ jobs:
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_RECEPIENTS: ${{ secrets.EMAIL_RECEPIENTS }}
 
-      - name: Set Email Subject with Date
+      - name: Set Email Subject
         id: set-email-subject
-        run: |
-          echo "email_subject=Web Automation & Dashboard Deployment - $(date '+%d-%b-%Y')" >> $GITHUB_ENV
+        run: echo "email_subject=🧪 QA Test Report - $(date '+%d-%b-%Y')" >> $GITHUB_ENV
 
       - name: Send Email Notification
         if: always()
@@ -155,4 +158,4 @@ jobs:
           subject: ${{ env.email_subject }}
           to: ${{ secrets.EMAIL_RECEPIENTS }}
           from: ${{ secrets.EMAIL_USERNAME }}
-          body: ${{ env.email_body }}
+          body: "📊 Deployment Done. Check Dashboard + Allure Report!"
