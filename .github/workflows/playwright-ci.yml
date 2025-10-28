@@ -112,7 +112,16 @@ jobs:
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
-      # ✅ Deploy updated Allure report to /allure
+      # ✅ NEW: Remove old Allure results so only latest are shown
+      - name: Cleanup Old Allure Report Folder
+        run: |
+          git fetch origin gh-pages
+          git checkout gh-pages || git checkout -b gh-pages
+          rm -rf allure
+        continue-on-error: true # no impact if first run
+        shell: bash
+
+      # ✅ Deploy updated Allure report to /allure (only latest)
       - name: Deploy Allure Report to gh-pages/allure
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -123,7 +132,7 @@ jobs:
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
-            # ✅ Notifications
+      # ✅ Notifications Section (unchanged)
       - name: Install Notification Dependencies
         run: npm install @slack/web-api yargs
     
@@ -144,7 +153,7 @@ jobs:
               EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
               EMAIL_RECEPIENTS: ${{ secrets.EMAIL_RECEPIENTS }}
     
-        # ✅ Export generated email body safely to GitHub ENV
+      # ✅ Export generated email body safely to GitHub ENV
       - name: Export Email Body to ENV
         if: always()
         run: |
@@ -170,5 +179,3 @@ jobs:
               to: ${{ secrets.EMAIL_RECEPIENTS }}
               from: ${{ secrets.EMAIL_USERNAME }}
               body: ${{ env.email_body }}
-    
-
