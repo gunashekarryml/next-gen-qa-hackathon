@@ -65,7 +65,7 @@ Debug this run using the workflow link:
 ${workflowUrl}
 
 Best regards,
-Automation Team
+NextGen QA Team
 `;
 
 // Save to GitHub ENV for email

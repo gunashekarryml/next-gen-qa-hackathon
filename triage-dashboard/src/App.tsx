@@ -16,6 +16,7 @@ import AIRootCauseSummary from "./components/AIRootCauseSummary";
 
 import { Rec } from "./types";
 import logo from "./assets/logo.png";
+import teamLogo from "./assets/team-logo.png"; // ✅ fixed image import
 
 interface CICDRun {
   run_number: number;
@@ -94,13 +95,27 @@ const App: React.FC = () => {
 
   return (
     <div className="relative min-h-screen font-sans text-white overflow-hidden bg-black">
-      {/* Logo */}
+      {/* Left Company Logo (unchanged) */}
       <img
         src={logo}
         alt="Logo"
         style={{ width: "180px", height: "180px", top: "-30px", left: "40px" }}
         className="absolute top-4 left-4 object-contain z-20 opacity-80 hover:opacity-100 transition-all duration-300 transform hover:scale-110 shadow-lg cursor-pointer"
       />
+
+      {/* ✅ Right Team Logo: Smaller + Clickable + Rotation Effect */}
+      <a
+        href="https://github.com/gunashekarryml/next-gen-qa-hackathon" // ✅ update to your real link
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img
+          src={teamLogo}
+          alt="Team Logo"
+          style={{ width: "110px", height: "110px", top: "20px", right: "40px" }}
+          className="absolute top-4 right-4 object-contain z-20 opacity-90 hover:opacity-100 transition-all duration-300 transform hover:scale-110 shadow-lg cursor-pointer"
+        />
+      </a>
 
       {/* Particles */}
       <Particles

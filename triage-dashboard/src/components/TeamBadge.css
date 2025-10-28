@@ -1,0 +1,10 @@
+/* src/components/TeamBadge.css */
+
+.team-badge {
+    transition: transform 0.7s ease-in-out;
+  }
+  
+  .team-badge.rotate {
+    transform: rotate(360deg);
+  }
+  

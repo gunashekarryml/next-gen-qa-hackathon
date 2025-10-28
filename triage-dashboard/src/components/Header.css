@@ -1,0 +1,15 @@
+/* src/components/Header.css */
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 18px;
+    background-color: #000; /* adjust to your theme */
+  }
+  
+  .left img,
+  .right img {
+    object-fit: contain;
+  }
+  

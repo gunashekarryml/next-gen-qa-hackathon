@@ -1,6 +1,6 @@
 {
-  "name": "playwright-tests",
-  "version": "1.0.0",
+  "name": "next-gen-qa-playwright-tests",
+  "version": "3.7.11",
   "type": "module",
   "private": true,
   "scripts": {

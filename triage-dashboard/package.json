@@ -1,6 +1,6 @@
 {
-  "name": "triage-dashboard",
-  "version": "1.0.0",
+  "name": "next-gen-qa-triage-dashboard",
+  "version": "3.7.11",
   "private": true,
   "homepage": "https://gunashekarryml.github.io/next-gen-qa-hackathon/dashboard",
   "proxy": "http://localhost:3001",

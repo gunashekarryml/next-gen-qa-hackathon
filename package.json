@@ -1,6 +1,6 @@
 {
-    "name": "automation-summit-solution",
-    "version": "1.0.0",
+    "name": "next-gen-qa-automation-summit-solution",
+    "version": "3.7.1",
     "private": true,
     "scripts": {
         "setup": "npm install && cd playwright-tests && npm install && npx playwright install && cd ../triage-dashboard && npm install",
