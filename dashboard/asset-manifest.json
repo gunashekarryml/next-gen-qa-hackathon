@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/team2-qa-hackathon/dashboard/static/css/main.7e6e087a.css",
-    "main.js": "/team2-qa-hackathon/dashboard/static/js/main.165d097b.js",
-    "static/media/logo.png": "/team2-qa-hackathon/dashboard/static/media/logo.c30c7b8d4ae2444fb00c.png",
-    "index.html": "/team2-qa-hackathon/dashboard/index.html",
-    "main.7e6e087a.css.map": "/team2-qa-hackathon/dashboard/static/css/main.7e6e087a.css.map",
-    "main.165d097b.js.map": "/team2-qa-hackathon/dashboard/static/js/main.165d097b.js.map"
+    "main.css": "/next-gen-qa-hackathon/dashboard/static/css/main.7e6e087a.css",
+    "main.js": "/next-gen-qa-hackathon/dashboard/static/js/main.ad17d9e0.js",
+    "static/media/logo.png": "/next-gen-qa-hackathon/dashboard/static/media/logo.c30c7b8d4ae2444fb00c.png",
+    "index.html": "/next-gen-qa-hackathon/dashboard/index.html",
+    "main.7e6e087a.css.map": "/next-gen-qa-hackathon/dashboard/static/css/main.7e6e087a.css.map",
+    "main.ad17d9e0.js.map": "/next-gen-qa-hackathon/dashboard/static/js/main.ad17d9e0.js.map"
   },
   "entrypoints": [
     "static/css/main.7e6e087a.css",
-    "static/js/main.165d097b.js"
+    "static/js/main.ad17d9e0.js"
   ]
 }
