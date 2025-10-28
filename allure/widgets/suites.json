@@ -1,1 +1,1 @@
-{"total":2,"items":[{"uid":"d7ae809f6bef86300c73cce3e4681205","name":"sample-test.spec.ts","statistic":{"failed":1,"broken":0,"skipped":0,"passed":1,"unknown":0,"total":2}},{"uid":"b2709be544f91089de44f3e63f9c7d83","name":"triage-data-validation.spec.ts","statistic":{"failed":0,"broken":0,"skipped":0,"passed":5,"unknown":0,"total":5}}]}
+{"total":1,"items":[{"uid":"b2709be544f91089de44f3e63f9c7d83","name":"triage-data-validation.spec.ts","statistic":{"failed":0,"broken":0,"skipped":0,"passed":5,"unknown":0,"total":5}}]}
