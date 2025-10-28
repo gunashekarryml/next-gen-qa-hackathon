@@ -9,8 +9,13 @@ import TrendChart from "./components/TrendChart";
 import CICDTrendChart from "./components/CICDTrendChart";
 import CounterCards from "./components/CounterCard";
 import RecordTable from "./components/RecordTable";
+import ModuleTreemapChart from "./components/ModuleTreemapChart";
 import QACopilotChat, { TestItem } from "./components/QACopilotChat";
 import AIRootCauseSummary from "./components/AIRootCauseSummary";
+
+// ✅ Newly added charts
+import ModuleChart from "./components/ModuleTreemapChart";
+import EnvironmentChart from "./components/EnvironmentChart";
 
 import { Rec } from "./types";
 import logo from "./assets/logo.png";
@@ -36,14 +41,7 @@ const App: React.FC = () => {
         t
           .split("\n")
           .filter(Boolean)
-          .map((l) => {
-            try {
-              return JSON.parse(l) as Rec;
-            } catch {
-              return null;
-            }
-          })
-          .filter(Boolean) as Rec[]
+          .map((l) => JSON.parse(l) as Rec)
       )
       .then((arr) => setData(arr))
       .catch((err) => {
@@ -78,21 +76,14 @@ const App: React.FC = () => {
     }));
   }, [data]);
 
-  const passRate = React.useMemo(() => {
-    const total = ciCdData.length;
-    const passed = ciCdData.filter((r) => r.status === "success").length;
-    return total > 0 ? (passed / total) * 100 : 0;
-  }, [ciCdData]);
-
   const failedTests = data.filter((t) => t.status === "FAIL");
 
-  // Map data for QA Copilot
   const testItems: TestItem[] = data.map((r) => ({
     id: r.test_id,
     name: r.failure_type || r.predicted_category || "Unknown Test",
     status: r.status === "PASS" ? "passed" : r.status === "FAIL" ? "failed" : "skipped",
     executedAt: r.timestamp,
-    details: r.reasoning_short || r.reasoning_long || r.logs?.join("\n") || "No details available",
+    details: r.reasoning_short || r.reasoning_long || r.logs?.join("\n") || "No details",
   }));
 
   return (
@@ -102,9 +93,7 @@ const App: React.FC = () => {
         src={logo}
         alt="Logo"
         style={{ width: "180px", height: "180px", top: "-30px", left: "40px" }}
-        className="absolute top-4 left-4 object-contain z-20
-                   opacity-80 hover:opacity-100 transition-all duration-300
-                   transform hover:scale-110 shadow-lg cursor-pointer"
+        className="absolute top-4 left-4 object-contain z-20 opacity-80 hover:opacity-100 transition-all duration-300 transform hover:scale-110 shadow-lg cursor-pointer"
       />
 
       {/* Particles */}
@@ -124,18 +113,25 @@ const App: React.FC = () => {
       {/* Counters */}
       <CounterCards data={data} />
 
-      {/* Charts */}
+      {/* Row 1 Charts */}
       <div className="px-8 mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <TrendChart data={trendData} />
         <PriorityChart data={data} />
       </div>
 
+      {/* Row 2 Charts */}
       <div className="px-8 mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <CategoryChart data={data} />
         <CICDTrendChart data={ciCdData} />
       </div>
 
-      {/* Table + Root Cause Section */}
+      {/* ✅ Row 3 Charts (NEW) */}
+      <div className="px-8 mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <ModuleTreemapChart data={data} />
+        <EnvironmentChart data={data} />
+      </div>
+
+      {/* Table + Summary */}
       <div className="px-8 mt-8 mb-12">
         <RecordTable data={data} />
         <AIRootCauseSummary failedTests={failedTests} />

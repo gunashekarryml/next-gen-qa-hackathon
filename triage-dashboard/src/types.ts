@@ -12,7 +12,9 @@ export interface Rec {
   impacted_layers?: string[];
   correlation_id?: string;
   logs?: string[];
-  timestamp?: string; // add this
+  timestamp?: string;
+  module: string;
+  environment?: string;
   status?: "PASS" | "FAIL" | "SKIPPED" | "ERROR";
 }
 
