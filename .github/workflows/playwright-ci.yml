@@ -142,8 +142,8 @@ jobs:
               echo "Generating email summary..."
               node triage-dashboard/create-summary.js \
                 --allureDir=playwright-tests/allure-report \
-                --dashboardUrl=https://gunashekarryml.github.io/team2-qa-hackathon/dashboard/ \
-                --allureUrl=https://gunashekarryml.github.io/team2-qa-hackathon/allure/
+                --dashboardUrl=https://gunashekarryml.github.io/next-gen-qa-hackathon/dashboard/ \
+                --allureUrl=https://gunashekarryml.github.io/next-gen-qa-hackathon/allure/
         env:
               SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
               SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}

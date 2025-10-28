@@ -25,8 +25,8 @@ Git
 (Optional but recommended) - VS Code + Playwright Test Extension
 
 ==============📥 2️⃣ Clone the Repository==============
-git clone https://github.com/<your-repo>/team2-qa-hackathon.git
-cd team2-qa-hackathon
+git clone https://github.com/<your-repo>/next-gen-qa-hackathon.git
+cd next-gen-qa-hackathon
 
 ==============📦 3️⃣ Install Dependencies==============
 For Dashboard
@@ -83,7 +83,7 @@ Stage	Actions
 Your dashboard is always live & up-to-date with latest results.
 
 ==============📁 Folder Structure==============
-team2-qa-hackathon/
+next-gen-qa-hackathon/
  ├─ triage-dashboard/        # React UI
  │   ├─ src/components/      # Charts, Tables, AI visuals
  │   ├─ src/data/            # Enriched test history inputs

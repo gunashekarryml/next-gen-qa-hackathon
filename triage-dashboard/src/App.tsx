@@ -10,12 +10,9 @@ import CICDTrendChart from "./components/CICDTrendChart";
 import CounterCards from "./components/CounterCard";
 import RecordTable from "./components/RecordTable";
 import ModuleTreemapChart from "./components/ModuleTreemapChart";
+import EnvironmentChart from "./components/EnvironmentChart";
 import QACopilotChat, { TestItem } from "./components/QACopilotChat";
 import AIRootCauseSummary from "./components/AIRootCauseSummary";
-
-// ✅ Newly added charts
-import ModuleChart from "./components/ModuleTreemapChart";
-import EnvironmentChart from "./components/EnvironmentChart";
 
 import { Rec } from "./types";
 import logo from "./assets/logo.png";
@@ -81,9 +78,18 @@ const App: React.FC = () => {
   const testItems: TestItem[] = data.map((r) => ({
     id: r.test_id,
     name: r.failure_type || r.predicted_category || "Unknown Test",
-    status: r.status === "PASS" ? "passed" : r.status === "FAIL" ? "failed" : "skipped",
+    status:
+      r.status === "PASS"
+        ? "passed"
+        : r.status === "FAIL"
+        ? "failed"
+        : "skipped",
     executedAt: r.timestamp,
-    details: r.reasoning_short || r.reasoning_long || r.logs?.join("\n") || "No details",
+    details:
+      r.reasoning_short ||
+      r.reasoning_long ||
+      r.logs?.join("\n") ||
+      "No details",
   }));
 
   return (
@@ -97,7 +103,12 @@ const App: React.FC = () => {
       />
 
       {/* Particles */}
-      <Particles id="tsparticles" className="absolute inset-0 -z-10" init={particlesInit} options={{}} />
+      <Particles
+        id="tsparticles"
+        className="absolute inset-0 -z-10"
+        init={particlesInit}
+        options={{}}
+      />
 
       {/* Header */}
       <motion.header
@@ -106,26 +117,28 @@ const App: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
       >
-        <h1 className="text-4xl md:text-5xl font-extrabold drop-shadow-lg">Triage Dashboard</h1>
+        <h1 className="text-4xl md:text-5xl font-extrabold drop-shadow-lg">
+          Triage Dashboard
+        </h1>
         <p className="text-purple-200 mt-2">Smarter Testing for Tomorrow</p>
       </motion.header>
 
       {/* Counters */}
       <CounterCards data={data} />
 
-      {/* Row 1 Charts */}
+      {/* Row 1 */}
       <div className="px-8 mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <TrendChart data={trendData} />
         <PriorityChart data={data} />
       </div>
 
-      {/* Row 2 Charts */}
+      {/* Row 2 */}
       <div className="px-8 mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <CategoryChart data={data} />
         <CICDTrendChart data={ciCdData} />
       </div>
 
-      {/* ✅ Row 3 Charts (NEW) */}
+      {/* ✅ Row 3 */}
       <div className="px-8 mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ModuleTreemapChart data={data} />
         <EnvironmentChart data={data} />
@@ -137,7 +150,7 @@ const App: React.FC = () => {
         <AIRootCauseSummary failedTests={failedTests} />
       </div>
 
-      {/* QA Copilot */}
+      {/* ✅ QA Copilot Chat remains untouched */}
       <QACopilotChat testData={testItems} />
 
       <footer className="text-center text-white/80 text-sm pb-6">

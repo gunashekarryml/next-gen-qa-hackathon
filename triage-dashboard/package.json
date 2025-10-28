@@ -2,7 +2,7 @@
   "name": "triage-dashboard",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://gunashekarryml.github.io/team2-qa-hackathon/dashboard",
+  "homepage": "https://gunashekarryml.github.io/next-gen-qa-hackathon/dashboard",
   "proxy": "http://localhost:3001",
   "scripts": {
     "start": "BROWSER=chrome react-scripts start",

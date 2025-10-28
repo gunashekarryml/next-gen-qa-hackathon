@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": "/team2-qa-hackathon/static/css/main.4b506475.css",
-    "main.js": "/team2-qa-hackathon/static/js/main.a885049a.js",
-    "index.html": "/team2-qa-hackathon/index.html",
-    "main.4b506475.css.map": "/team2-qa-hackathon/static/css/main.4b506475.css.map",
-    "main.a885049a.js.map": "/team2-qa-hackathon/static/js/main.a885049a.js.map"
+    "main.css": "/next-gen-qa-hackathon/static/css/main.4b506475.css",
+    "main.js": "/next-gen-qa-hackathon/static/js/main.a885049a.js",
+    "index.html": "/next-gen-qa-hackathon/index.html",
+    "main.4b506475.css.map": "/next-gen-qa-hackathon/static/css/main.4b506475.css.map",
+    "main.a885049a.js.map": "/next-gen-qa-hackathon/static/js/main.a885049a.js.map"
   },
   "entrypoints": [
     "static/css/main.4b506475.css",
