@@ -26,7 +26,7 @@ const QACopilotChat: React.FC<QACopilotChatProps> = ({ testData }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [position, setPosition] = useState({ x: 1350, y: 300 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [typing, setTyping] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
