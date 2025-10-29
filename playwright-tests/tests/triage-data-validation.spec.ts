@@ -98,4 +98,73 @@ test.describe("🧩 Triage Enriched Data Validation", () => {
 
     expect(Object.keys(byPriority).length, "At least one priority expected").toBeGreaterThan(0);
   });
+
+  test("🔍 Validate confidence score range", async () => {
+    for (const r of records) {
+      if (r.confidence !== undefined) {
+        expect.soft(r.confidence).toBeGreaterThanOrEqual(0);
+        expect.soft(r.confidence).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  test("🧠 Validate explainability object structure", async () => {
+    for (const r of records) {
+      expect.soft(Array.isArray(r.explainability?.matched), `explainability.matched missing for ${r.test_id}`).toBe(true);
+      expect.soft(typeof r.explainability?.weights === "object", `explainability.weights missing for ${r.test_id}`).toBe(true);
+    }
+  });
+
+  test("🏷️ Validate triage_priority allowed values", async () => {
+    const allowed = ["P0", "P1", "P2", "P3", "P4", "Unknown"];
+
+    const invalidPriorities = records.filter(
+      (r) => !allowed.includes(r.triage_priority ?? "Unknown")
+    );
+
+    expect.soft(
+      invalidPriorities.length,
+      `Invalid triage_priority for: ${invalidPriorities.map(r => r.test_id).join(", ")}`
+    ).toBe(0);
+  });
+
+  test("🧩 Validate defectCorrelation structure", async () => {
+    for (const r of records) {
+      if (r.defectCorrelation) {
+        expect.soft(typeof r.defectCorrelation.knownIssue).toBe("boolean");
+        if (r.defectCorrelation.knownIssue) {
+          expect.soft(r.defectCorrelation.defectId, `Missing defectId when knownIssue=true for ${r.test_id}`).toBeTruthy();
+        }
+      }
+    }
+  });
+
+  test("🔁 Validate error message or actual_behavior must exist when FAIL", async () => {
+    for (const r of records) {
+      if (r.status === "FAIL") {
+        const hasFailureData = Boolean(r.error_message || r.actual_behavior);
+        expect.soft(hasFailureData, `FAIL record missing error data: ${r.test_id}`).toBe(true);
+      }
+    }
+  });
+
+  test("🪵 Validate logs existence and must include correlation_id", async () => {
+    for (const r of records) {
+      expect.soft(r.logs.length > 0, `Logs missing for ${r.test_id}`).toBe(true);
+      const correlationFound = r.logs.some((l) => l.includes(r.correlation_id));
+      expect.soft(correlationFound, `Correlation Id not referenced in logs for ${r.test_id}`).toBe(true);
+    }
+  });
+
+  test("📦 Validate impacted layers if failure_type exists", async () => {
+    for (const r of records) {
+      if (r.failure_type) {
+        expect.soft(
+          Array.isArray(r.impacted_layers) && r.impacted_layers.length > 0,
+          `impacted_layers missing for ${r.test_id}`
+        ).toBe(true);
+      }
+    }
+  });
+
 });

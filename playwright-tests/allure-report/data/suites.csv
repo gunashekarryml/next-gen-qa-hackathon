@@ -1,6 +1,0 @@
-"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"","72","📅 Validate enriched_at timestamp format","","Tue Oct 28 18:39:35 IST 2025","passed","Tue Oct 28 18:39:35 IST 2025","🧩 Triage Enriched Data Validation","triage-data-validation.spec.ts","",""
-"","64","✅ Validate enriched file has records","","Tue Oct 28 18:39:34 IST 2025","passed","Tue Oct 28 18:39:34 IST 2025","🧩 Triage Enriched Data Validation","triage-data-validation.spec.ts","",""
-"","11","⚙️ Validate predicted_category values","","Tue Oct 28 18:39:35 IST 2025","passed","Tue Oct 28 18:39:35 IST 2025","🧩 Triage Enriched Data Validation","triage-data-validation.spec.ts","",""
-"","10","📊 Display summary metrics by triage_priority","","Tue Oct 28 18:39:35 IST 2025","passed","Tue Oct 28 18:39:35 IST 2025","🧩 Triage Enriched Data Validation","triage-data-validation.spec.ts","",""
-"","849","🧾 Validate mandatory enriched fields for each record","","Tue Oct 28 18:39:34 IST 2025","passed","Tue Oct 28 18:39:35 IST 2025","🧩 Triage Enriched Data Validation","triage-data-validation.spec.ts","",""
