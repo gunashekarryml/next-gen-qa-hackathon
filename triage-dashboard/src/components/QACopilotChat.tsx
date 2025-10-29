@@ -26,7 +26,7 @@ const QACopilotChat: React.FC<QACopilotChatProps> = ({ testData }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState({ x: 1350, y: 300 });
+  const [position, setPosition] = useState({ x: 1350, y: 230 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [typing, setTyping] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
@@ -285,7 +285,7 @@ Be concise.
               src={copilotIcon}
               alt="QA Copilot"
               draggable={false}
-              style={{ width: 56, height: 56, userSelect: "none", filter: "drop-shadow(0 0 12px rgba(157,75,255,0.85))" }}
+              style={{ width: 56, height: 56, userSelect: "none", filter: "drop-shadow(0 0 12px rgba(157,75,255,0.85))", animation: "floatIcon 3s ease-in-out infinite" }}
             />
             {/* Greeting bubble when no messages yet */}
             {messages.length === 0 && (
@@ -446,12 +446,20 @@ Be concise.
 
       {/* small pulse keyframes for greeting bubble (inline style fallback) */}
       <style>{`
-        @keyframes pulse {
-          0% { transform: translateY(0); opacity: 1; }
-          50% { transform: translateY(-4px); opacity: 0.95; }
-          100% { transform: translateY(0); opacity: 1; }
-        }
-      `}</style>
+  @keyframes pulse {
+    0% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-4px); opacity: 0.95; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  /* ✅ Floating animation for minimized icon */
+  @keyframes floatIcon {
+    0% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(1deg); }
+    100% { transform: translateY(0) rotate(0deg); }
+  }
+`}</style>
+
     </div>
   );
 };
