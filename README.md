@@ -1,15 +1,12 @@
-🧠 Team2 QA Hackathon – Smart QA Intelligence Platform
 
-Welcome to the Team2 QA Intelligence Platform, an automated system that:
+🧠 Next-Gen QA Hackathon – Smart QA Intelligence Platform
+
+Welcome to the Next-Gen QA Intelligence Platform, an automated system that:
 
 🚀 Executes Playwright automation tests
-
 🧬 Enriches test results into intelligent insights
-
 📊 Visualizes trends in a React-powered Triage Dashboard
-
 🔔 Sends Slack & Email notifications
-
 ☁️ Auto-deploys via GitHub Pages
 
 🧩 Architecture Diagram
@@ -21,24 +18,23 @@ You can add a visual architecture diagram here for clarity.
 ⚙️ For E2E Demo Purpose
 
 Install all dependencies (Step 1–3) and run the below command from project root:
-
 npm run full:demo
+
 
 ✅ 1️⃣ Prerequisites
 
 Ensure you have these installed:
 
 Node.js 18+
-
-npm or yarn
-
+npm
 Git
-
 (Optional but recommended): VS Code + Playwright Test Extension
 
+
 📥 2️⃣ Clone the Repository
-git clone https://github.com/<your-repo>/next-gen-qa-hackathon.git
+git clone https://github.com/gunashekarryml/next-gen-qa-hackathon.git
 cd next-gen-qa-hackathon
+
 
 📦 3️⃣ Install Dependencies
 
@@ -54,13 +50,14 @@ cd ../playwright-tests
 npm install
 npx playwright install
 
+
 🧪 4️⃣ Run Automation Tests Locally
 cd playwright-tests
 npm test
 
-
 📁 Results saved in:
 /playwright-tests/results/
+
 
 🧬 5️⃣ Generate Enriched Data (Used by Dashboard)
 
@@ -73,6 +70,7 @@ npm run enrich
 📁 Output:
 triage-dashboard/src/data/TestData.enriched.jsonl
 
+
 🎯 6️⃣ Start the Dashboard (Local Preview)
 cd ../triage-dashboard
 npm start
@@ -81,12 +79,14 @@ npm start
 Open in your browser:
 👉 http://localhost:3000/
 
+
 📊 Dashboards You’ll See
 
 ✅ CI/CD Success Over Time
 ✅ Failure Heatmaps & Clustering
 ✅ Smart QA Root Cause Visuals
 ✅ Category-based Grouping
+
 
 🛰️ CI/CD Pipeline Overview
 Stage	Actions
@@ -95,6 +95,7 @@ Stage	Actions
 ✅ Generate Data	Enrich JSONL output
 ✅ Deploy Dashboard	GitHub Pages
 ✅ Notifications	Slack + Email
+
 
 Your dashboard stays live & auto-updated with the latest results.
 
@@ -108,11 +109,13 @@ next-gen-qa-hackathon/
  │   └─ results/             # Test outputs
  └─ .github/workflows/       # CI pipeline
 
+
 🔌 Integrations
 Service	Purpose
 GitHub Pages	Dashboard hosting
 Slack	Run status alerts
 Email	Test summary notifications
+
 
 
 🚀 Tech Stack
@@ -128,6 +131,7 @@ Email	Test summary notifications
 🤖 QA Copilot (Custom) – AI-driven root cause prediction and reasoning
 🌿 GitHub + GitHub Pages – Version control and live dashboard hosting
 
+
 🤝 Contribution Guide
 
 1️⃣ Create a feature branch
@@ -135,8 +139,8 @@ Email	Test summary notifications
 3️⃣ Submit a PR with screenshots & results
 
 Branch naming rule:
-
 feature/<ticket-id>-<summary>
+
 
 🏆 Hackathon Value Proposition
 
@@ -148,13 +152,14 @@ feature/<ticket-id>-<summary>
 Bring metrics to life. Empower QA with intelligence.
 
 
+
 👥 Contributors
 
-💜Guna
-💜Mounika
-💜Naimisha
-💜Nidhi
-💜Nirupama
+Guna
+Mounika
+Naimisha
+Nidhi
+Nirupama
 
 
 ✍️ Author
@@ -162,3 +167,6 @@ Bring metrics to life. Empower QA with intelligence.
 Created with passion by Team Next-Gen-QA
 
 💡 “Quality-driven minds building intelligent QA systems.”
+
+
+
