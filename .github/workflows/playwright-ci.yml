@@ -148,7 +148,7 @@ jobs:
               const slack = new WebClient(process.env.SLACK_TOKEN);
               const channel = process.env.SLACK_CHANNEL;
               // intentionally undefined content for integration check
-              const text = undefined; 
+              const text = "undefined"; 
               slack.chat.postMessage({ channel, text })
                 .then(() => console.log('✅ Slack integration succeeded'))
                 .catch(err => console.error('❌ Slack integration failed:', err));
