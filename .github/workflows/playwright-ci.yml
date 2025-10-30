@@ -166,7 +166,7 @@ jobs:
         id: set-email-subject
         if: always()
         run: |
-              echo "subject= QA Test Report - $(date '+%d-%b-%Y')" >> $GITHUB_OUTPUT
+              echo "subject=💜 Next Gen QA | Smart QA Intelligence Report — $(date '+%d %b %Y')" >> $GITHUB_OUTPUT
     
       - name: Send Email Notification
         if: always()
