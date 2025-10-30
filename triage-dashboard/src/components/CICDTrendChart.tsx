@@ -40,7 +40,7 @@ const CICDTrendChart: React.FC<CICDTrendChartProps> = ({ data }) => {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <h3 className="text-lg font-semibold mb-4 text-indigo-700">
+      <h3 className="text-gray-900 font-bold text-2xl mb-4 flex items-center gap-2">
         🚀 CI/CD Recent Runs
       </h3>
 

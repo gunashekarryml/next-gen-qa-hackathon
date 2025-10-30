@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Treemap, Tooltip, ResponsiveContainer } from "recharts";
+import { motion } from "framer-motion";
 import { Rec } from "../types";
 
 export interface ModuleTreemapChartProps {
@@ -87,8 +88,17 @@ export default function ModuleTreemapChart({ data }: ModuleTreemapChartProps) {
   }));
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-xl hover:shadow-2xl">
-      <h3 className="text-gray-900 font-bold text-xl mb-4">📦 Module Treemap</h3>
+    <motion.div
+      className="bg-white rounded-3xl p-6 shadow-xl"
+      whileHover={{
+        scale: 1.02,
+        boxShadow: "0px 6px 18px rgba(99, 102, 241, 0.25)"
+      }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+      <h3 className="text-gray-900 font-bold text-xl mb-4 flex items-center gap-2">
+        📦 Module Treemap
+      </h3>
 
       <ResponsiveContainer width="100%" height={330}>
         <Treemap
@@ -98,9 +108,16 @@ export default function ModuleTreemapChart({ data }: ModuleTreemapChartProps) {
         >
           <Tooltip
             formatter={(v: any, _: any, p: any) => [`${v} tests`, p?.payload?.name]}
+            contentStyle={{
+              backgroundColor: "#111827",
+              border: "none",
+              borderRadius: 8,
+              boxShadow: "0 2px 10px rgba(0,0,0,0.25)"
+            }}
+            itemStyle={{ color: "#fff" }}
           />
         </Treemap>
       </ResponsiveContainer>
-    </div>
+    </motion.div>
   );
 }

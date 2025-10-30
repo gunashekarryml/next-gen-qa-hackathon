@@ -49,17 +49,30 @@ export default function RecordTable({ data }: RecordTableProps) {
 
   // build rows from incoming data and assign random status / assignee (initial only)
   useEffect(() => {
+    const generatedIds = new Set<string>();
+  
+    const getRandomDefectId = () => {
+      let id: string;
+      do {
+        id = `D-${Math.floor(1000 + Math.random() * 9000)}`; // D-1000 to D-9999
+      } while (generatedIds.has(id));
+      generatedIds.add(id);
+      return id;
+    };
+  
     const rows: TableRow[] = data.map((record, index) => ({
-      defectId: `D-${String(index % 10000).padStart(4, "0")}`,
+      defectId: getRandomDefectId(),
       assignee: ASSIGNEES[index % ASSIGNEES.length],
       status: STATUS_LIST[Math.floor(Math.random() * STATUS_LIST.length)],
       record,
     }));
+  
     setAllRows(rows);
     setCurrentPage(1);
     setExpandedId(null);
     setSelectedId(null);
   }, [data]);
+  
 
   // filtering + sorting
   const filteredRows = useMemo(() => {
@@ -225,7 +238,7 @@ export default function RecordTable({ data }: RecordTableProps) {
       {/* Title */}
       <div className="mb-3">
         <h3 className="text-xl font-bold text-white">📋 Records</h3>
-        <p className="text-sm text-gray-300">Click a row to expand — filters below are sticky.</p>
+        <p className="text-sm text-gray-300">Click a row to expand</p>
       </div>
 
       {/* Sticky Filters Bar */}

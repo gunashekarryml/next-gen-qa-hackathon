@@ -68,7 +68,7 @@ export default function TrendChart({ data }: TrendChartProps) {
     >
       {/* Header */}
       <h3 className="text-gray-900 font-bold text-2xl flex items-center gap-2 mb-4">
-        📈 Failure Trend
+        📈 Test Data Failure Trend
       </h3>
 
       {/* Chart Wrapper with hover tracking */}

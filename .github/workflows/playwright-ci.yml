@@ -136,22 +136,28 @@ jobs:
       - name: Install Notification Dependencies
         run: npm install @slack/web-api yargs
     
-      - name: Create Slack & Email Summary
+            # 🧪 TEMP: Slack Integration Test (content intentionally undefined)
+      # TODO: Revert this after verifying Slack post works
+      - name: Create Slack & Email Summary (Integration Test)
         if: always()
         run: |
-              echo "Generating email summary..."
-              node triage-dashboard/create-summary.js \
-                --allureDir=playwright-tests/allure-report \
-                --dashboardUrl=https://gunashekarryml.github.io/next-gen-qa-hackathon/dashboard/ \
-                --allureUrl=https://gunashekarryml.github.io/next-gen-qa-hackathon/allure/
+          echo "Testing Slack integration..."
+          node -e "
+            import('node:process');
+            import('@slack/web-api').then(({ WebClient }) => {
+              const slack = new WebClient(process.env.SLACK_TOKEN);
+              const channel = process.env.SLACK_CHANNEL;
+              // intentionally undefined content for integration check
+              const text = undefined; 
+              slack.chat.postMessage({ channel, text })
+                .then(() => console.log('✅ Slack integration succeeded'))
+                .catch(err => console.error('❌ Slack integration failed:', err));
+            });
+          "
         env:
-              SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-              SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-              GITHUB_REPOSITORY: ${{ github.repository }}
-              GITHUB_RUN_ID: ${{ github.run_id }}
-              EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
-              EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-              EMAIL_RECEPIENTS: ${{ secrets.EMAIL_RECEPIENTS }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+
     
       # ✅ Export generated email body safely to GitHub ENV
       - name: Export Email Body to ENV

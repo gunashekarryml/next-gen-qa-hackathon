@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { motion } from "framer-motion";
 import { Rec } from "../types";
 
 // Color palette for environments
@@ -38,7 +39,14 @@ export default function EnvironmentChart({ data }: { data: Rec[] }) {
   }));
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300">
+    <motion.div
+      className="bg-white rounded-3xl p-6 shadow-xl"
+      whileHover={{
+        scale: 1.02,
+        boxShadow: "0px 6px 18px rgba(99, 102, 241, 0.25)",
+      }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
       <h3 className="text-gray-900 font-bold text-2xl mb-5 flex gap-2 items-center">
         🌍 Environment Insights
       </h3>
@@ -105,6 +113,6 @@ export default function EnvironmentChart({ data }: { data: Rec[] }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-    </div>
+    </motion.div>
   );
 }

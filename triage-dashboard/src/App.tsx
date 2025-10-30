@@ -112,7 +112,7 @@ const App: React.FC = () => {
         <img
           src={teamLogo}
           alt="Team Logo"
-          style={{ width: "110px", height: "110px", top: "20px", right: "40px" }}
+          style={{ width: "110px", height: "110px", top: "05px", right: "40px" }}
           className="absolute top-4 right-4 object-contain z-20 opacity-90 hover:opacity-100 transition-all duration-300 transform hover:scale-110 shadow-lg cursor-pointer"
         />
       </a>
@@ -135,7 +135,6 @@ const App: React.FC = () => {
         <h1 className="text-4xl md:text-5xl font-extrabold drop-shadow-lg">
           Triage Dashboard
         </h1>
-        <p className="text-purple-200 mt-2">Smarter Testing for Tomorrow</p>
       </motion.header>
 
       {/* Counters */}
@@ -168,8 +167,13 @@ const App: React.FC = () => {
       {/* ✅ QA Copilot Chat remains untouched */}
       <QACopilotChat testData={testItems} />
 
-      <footer className="text-center text-white/80 text-sm pb-6">
-        Built with 💜 React, Recharts, tsparticles & Tailwind
+      <footer className="text-center text-sm pb-6 text-white/70">
+        <div className="font-semibold text-white/90 hover:text-purple-300 transition duration-300">
+          💜 Built with passion by <span className="text-purple-400 font-bold">Team Next-Gen QA</span>
+        </div>
+        <div className="mt-1 text-[13px] italic text-purple-300 animate-pulse">
+          🚀 Quality-Driven Minds — Innovating the Future of Testing
+        </div>
       </footer>
     </div>
   );
