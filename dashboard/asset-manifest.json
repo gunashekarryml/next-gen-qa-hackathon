@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/next-gen-qa-hackathon/dashboard/static/css/main.7e6e087a.css",
-    "main.js": "/next-gen-qa-hackathon/dashboard/static/js/main.61942983.js",
+    "main.js": "/next-gen-qa-hackathon/dashboard/static/js/main.5763a115.js",
     "static/media/team-logo.png": "/next-gen-qa-hackathon/dashboard/static/media/team-logo.4bdf2faf24506e224ab7.png",
     "static/media/copilot-icon.png": "/next-gen-qa-hackathon/dashboard/static/media/copilot-icon.044bf8c824297d05a66a.png",
     "static/media/logo.png": "/next-gen-qa-hackathon/dashboard/static/media/logo.c30c7b8d4ae2444fb00c.png",
     "index.html": "/next-gen-qa-hackathon/dashboard/index.html",
     "main.7e6e087a.css.map": "/next-gen-qa-hackathon/dashboard/static/css/main.7e6e087a.css.map",
-    "main.61942983.js.map": "/next-gen-qa-hackathon/dashboard/static/js/main.61942983.js.map"
+    "main.5763a115.js.map": "/next-gen-qa-hackathon/dashboard/static/js/main.5763a115.js.map"
   },
   "entrypoints": [
     "static/css/main.7e6e087a.css",
-    "static/js/main.61942983.js"
+    "static/js/main.5763a115.js"
   ]
 }
