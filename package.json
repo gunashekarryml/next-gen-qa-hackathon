@@ -13,7 +13,7 @@
         "start-server": "cd triage-dashboard/server && node index.js",
         "build": "cd playwright-tests && npm run build",
         "triage": "cd playwright-tests && npm run triage",
-        "enrich": "cd playwright-tests && npm run enrich",
+        "enrich:data": "cd playwright-tests && npm run enrich",
         "start": "cd triage-dashboard && npm start",
         "allure": "cd playwright-tests && npm run allure:generate && npx allure open allure-report",
         "test": "cd playwright-tests && npx playwright test --reporter=line,allure-playwright",
@@ -25,7 +25,9 @@
         "full:demo:03": "npm run enrich && npm run allure && npm run start",
         "clean:allure": "cd playwright-tests && rm -rf allure-results allure-report",
         
-        "full:demo": "npm run enrich && npm run clean:allure && npm run test && npm run report && lsof -ti:3000 | xargs -r kill -9 && concurrently \"npm run start-server\" \"npm run start\" \"cd playwright-tests && npx allure open allure-report\""
+        "full:demo": "npm run enrich && npm run clean:allure && npm run test && npm run report && lsof -ti:3000 | xargs -r kill -9 && concurrently \"npm run start-server\" \"npm run start\" \"cd playwright-tests && npx allure open allure-report\"",
+        "local:full:demo": "npm run clean:allure && npm run enrich:data &&  npm run test && npm run report && lsof -ti:3000 | xargs -r kill -9 && concurrently \"npm run start-server\" \"npm run start\" \"cd playwright-tests && npx allure open allure-report\""
+
 
     },
     "workspaces": [

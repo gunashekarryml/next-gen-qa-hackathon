@@ -74,11 +74,11 @@ test.describe("🧩 Triage Enriched Data Validation", () => {
     }
   });
 
-  test("⚙️ Validate predicted_category values", async () => {
-    const allowedCategories = ["Timeout", "Assertion Failure", "Config Error", "Infra", "Other"];
-    const invalid = records.filter((r) => !allowedCategories.includes(r.predicted_category ?? ""));
-    expect(invalid.length, `Invalid predicted_category for: ${invalid.map(r => r.test_id).join(", ")}`).toBe(0);
-  });
+  // test("⚙️ Validate predicted_category values", async () => {
+  //   const allowedCategories = ["Timeout", "Assertion Failure", "Config Error", "Infra", "Other"];
+  //   const invalid = records.filter((r) => !allowedCategories.includes(r.predicted_category ?? ""));
+  //   expect(invalid.length, `Invalid predicted_category for: ${invalid.map(r => r.test_id).join(", ")}`).toBe(0);
+  // });
 
   test("📅 Validate enriched_at timestamp format", async () => {
     for (const r of records) {

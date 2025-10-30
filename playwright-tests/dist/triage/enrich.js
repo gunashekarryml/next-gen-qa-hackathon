@@ -6,70 +6,67 @@ import { generateReasoning } from "./reasoning.js";
 const inputFile = path.resolve("./test-data/TestData.jsonl");
 const outputFile = path.resolve("./test-data/TestData.enriched.jsonl");
 export async function enrichFile(input, output) {
-    console.log(`Starting triage enrichment: ${input} -> ${output}`);
+    console.log(`🚀 Starting triage enrichment: ${input} -> ${output}`);
     if (!fs.existsSync(input)) {
-        throw new Error(`Input file does not exist: ${input}`);
+        throw new Error(`❌ Input file does not exist: ${input}`);
     }
     const rawData = await fs.readFile(input, "utf-8");
     const records = rawData
         .split("\n")
         .filter(Boolean)
         .map((line) => JSON.parse(line));
-    const allowedCategories = ["Timeout", "Assertion Failure", "Config Error", "Infra", "Other"];
     const enriched = records.map((r) => {
-        // Classification
         const classification = classify(r);
-        let predicted_category = classification.category;
-        if (!allowedCategories.includes(predicted_category)) {
-            predicted_category = "Other";
-        }
-        // Reasoning
+        const predicted_category = classification.category;
         const reasoning = generateReasoning(r, classification);
-        // Assign triage priority based on category + severity
-        const triage_priority = assignPriority({
-            ...r,
-            predicted_category,
-            failure_type: r.failure_type,
-        });
+        const triage_priority = assignPriority(r, predicted_category);
         return {
             ...r,
             predicted_category,
             confidence: classification.confidence,
-            reasoning_short: reasoning.short,
-            reasoning_long: reasoning.long,
+            reasoning_short: `${predicted_category} → ${triage_priority}`,
+            reasoning_long: `${reasoning.long} | Assigned ${triage_priority} due to ${predicted_category} (${classification.confidence * 100}% confidence).`,
             explainability: classification.explain,
             triage_priority,
             enriched_at: new Date().toISOString(),
-            classification: r.classification || "Unknown",
+            classification: predicted_category,
             reasoning: reasoning.short,
             defectCorrelation: r.defectCorrelation || { knownIssue: false },
         };
     });
-    // Write enriched data
-    const lines = enriched.map((r) => JSON.stringify(r));
-    await fs.writeFile(output, lines.join("\n"));
-    console.log(`Enrichment complete, wrote ${enriched.length} records to: ${output}`);
+    await fs.writeFile(output, enriched.map((r) => JSON.stringify(r)).join("\n"));
+    console.log(`✅ Enrichment complete — wrote ${enriched.length} records to ${output}`);
     return enriched;
 }
-function assignPriority(record) {
-    const category = record.predicted_category || "Other";
+/** Enhanced Priority Assignment */
+function assignPriority(record, category) {
     const failureType = record.failure_type?.toLowerCase() || "";
-    // P1: Critical / infra / environment blocking
-    if (category === "Infra" || failureType.includes("critical") || category === "Environment/Build Error") {
+    const impacted = record.impacted_layers?.length || 0;
+    // 🔴 P1 — Critical issues / infra / widespread failures
+    if (category.includes("Infra") ||
+        failureType.includes("critical") ||
+        category.includes("Backend") && impacted >= 3 ||
+        category.includes("Authentication") ||
+        category.includes("External Dependency Failure") && impacted >= 2) {
         return "P1";
     }
-    // P2: Major / important features
-    if (category === "Assertion Failure" || category === "Config Error" || category === "Locator/Selector Issue") {
+    // 🟠 P2 — Functional / config / test assertion issues
+    if (category.includes("Assertion") ||
+        category.includes("Config") ||
+        category.includes("Locator") ||
+        category.includes("Backend") && impacted < 3) {
         return "P2";
     }
-    // P3: Minor / low impact / transient
-    if (category === "Timeout" || category === "Driver/Automation Framework" || category === "Other") {
+    // 🟡 P3 — Minor / transient / isolated issues
+    if (category.includes("Timeout") ||
+        category.includes("Other") ||
+        category.includes("Driver") ||
+        category.includes("Stale")) {
         return "P3";
     }
-    // Default fallback
     return "P3";
 }
-// If called directly
+// Execute directly
 if (process.argv[1].includes("enrich.ts") || process.argv[1].includes("enrich.js")) {
     enrichFile(inputFile, outputFile).catch((err) => {
         console.error("❌ Error during enrichment:", err);

@@ -34,10 +34,11 @@ jobs:
         working-directory: playwright-tests
         run: npx playwright install chromium
 
-      - name: Enrich Test Failures & Validate Data
+      - name: Enrich Test Failures
+        working-directory: playwright-tests
         run: npm run enrich
 
-      - name: Run Playwright Tests + Generate Allure Results
+      - name: Run Playwright Tests
         working-directory: playwright-tests
         run: npx playwright test || true
 
